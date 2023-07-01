@@ -1,0 +1,1 @@
+Distribution file downloaded from: https://github.com/IFCjs/web-ifc

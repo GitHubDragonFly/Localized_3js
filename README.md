@@ -40,7 +40,7 @@ Optional repository - download and extract the zip file from:
 
 # Optional Custom Mods (use all or none)
 
-These files / folders should be placed in the corresponding folder:
+These files / folders should be placed in the corresponding folder and replace any existing files:
 
 - `sw.js` file ------------------------	main folder/editor/
 - `Strings.js` file -------------------	main folder/editor/js/

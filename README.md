@@ -59,7 +59,7 @@ These files / folders should be placed in the corresponding folder and replace a
 - `PLYExporter.js` file ---------------	main folder/examples/jsm/exporters/
 - `ColladaExporter.js` file -----------	main folder/examples/jsm/exporters/
 
-Customized features would be:
+Customized features would be mainly Editor related:
 
 - Automatic addition of `DirectionalLight` to the new scene
 - Customized PDB, PRWM, LDRAW and XYZ loaders
@@ -67,8 +67,8 @@ Customized features would be:
 - Localized IFC loader
 - Customized PLY exporter
 - DAE (Collada) exporter, which was officially removed
-- Support for OBJ + MTL + textures zipped files
-- Support for DAE (Collada) + textures zipped files
+- Support for loading OBJ + MTL + textures zipped files
+- Support for loading DAE (Collada) + textures zipped files
 
 There might be bugs.
 

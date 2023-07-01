@@ -1,15 +1,15 @@
 # Localized and optionally customized three.js
 
-IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor or Examples (Docs) then here is a possible way of doing it.
+IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor or Examples (Docs) then here is a possible way of doing it with python.
 
-Custom modified files are optional and should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
+Note: Custom modified files are optional and should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
 
 # Requirements
 
 Either of the below should work:
 
 - `python` + `Flask` and `flask_cors` packages
-- `VS Code` + `python` (from Microsoft Store) + `Flask` and `flask_cors` packages
+- `VS Code` + `python` extension (from Microsoft Store) + `Flask` and `flask_cors` packages
 
 Packages are normally installed with `pip`, for example: `> pip install Flask`
 

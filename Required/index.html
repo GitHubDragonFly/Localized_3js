@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="encoding" content="utf-8" charset="utf-8">
+    <meta name="description" content="Localized three.js - Editor and Examples (Docs)">
+		<link rel="shortcut icon" href="./files/favicon_white.ico" media="(prefers-color-scheme: dark)"/>
+		<link rel="shortcut icon" href="./files/favicon.ico" media="(prefers-color-scheme: light)" />
+
+    <style>
+      body, html {
+        position: relative;
+        display: block;
+        background-image: url( 'icon.png' );
+        background-image: -webkit-image-set( url( 'icon.png' ) );
+        background-position: calc(50vw - 250px) calc(50vh - 250px);
+        background-repeat: no-repeat;
+        width: 100%;
+        min-height: 100vh;
+        border: none;
+        padding: 0;
+        margin: 0;
+        overflow-x: hidden;
+      }
+
+      div { background-color: aliceblue; width: 99%; border: none; -webkit-border-radius: 5px; border-radius: 5px; padding: 3px; margin: 5px; }
+      p { font-size: 125%; text-align: center; color: blue; border: 1px solid lightblue; margin-bottom: 10px; }
+
+      A { text-decoration: none; margin: 0 2px 0 2px; }
+      A:hover { color:#262626; background-color:#dad9fc; text-decoration: none; border: 1px solid #C4E5F0; -webkit-border-radius: 5px; border-radius: 5px; padding-left: 3px; padding-right: 3px; }
+      A[target="_blank"]:after {
+        content: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg==);
+        margin: 3px 0 0 5px;
+      }
+
+      .menubtn {
+        background-color: transparent;
+        color: blue;
+        padding: 1px;
+        font-size: 90%;
+        border: none;
+      }
+
+      dark_blue { color: #03038f; }
+
+      .fixed-menu {
+        position: fixed;
+        z-index: 1;
+        top: 0px;
+        left: 0px;
+        margin-top: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+        padding: 1px;
+        width: 99.85%;
+        vertical-align: middle;
+        border: 1px solid navy;
+        -webkit-border-radius: 2px;
+        border-radius: 2px;
+        background-color: whitesmoke;
+      }
+    </style>
+
+    <title>Localized Three.js</title>
+  </head>
+  <body>
+    <p class="fixed-menu">&#128578; &nbsp; <dark_blue>Localized</dark_blue> three.js &nbsp; &#x2192;
+      <button class="menubtn" title="Editor" style="min-width: 110px;"><a href="./editor/index.html" target="_blank">Editor</a></button>
+      <button class="menubtn" title="Examples" style="min-width: 110px;"><a href="./examples/index.html" target="_blank">Examples</a></button>
+    </p>
+  </body>
+</html>

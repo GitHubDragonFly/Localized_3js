@@ -69,6 +69,8 @@ Customized features would be:
 - DAE (Collada) exporter, which was officially removed
 - Support for DAE (Collada) zipped files
 
+There might be bugs.
+
 # Mozilla Firefox screenshot
 
 Main Menu Page

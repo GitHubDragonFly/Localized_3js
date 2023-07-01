@@ -15,7 +15,7 @@ Packages are normally installed with `pip`, for example: `> pip install Flask`
 
 Required repository - download and extract the zip file from:
 
-- `master` or `dev` branch or `releases` of the [three.js](https://github.com/mrdoob/three.js/)
+- `master` or `dev` branch or `releases` of the [three.js](https://github.com/mrdoob/three.js/), which when unzipped will create the `main folder`
 
 Optional repository - download and extract the zip file from:
 

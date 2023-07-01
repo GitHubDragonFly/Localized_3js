@@ -1,6 +1,8 @@
 # Localized and optionally customized three.js
 
-IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor or Examples (Docs) then here is a possible way of doing it. Custom modified files are optional and should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
+IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor or Examples (Docs) then here is a possible way of doing it.
+
+Custom modified files are optional and should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
 
 # Requirements
 

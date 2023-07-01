@@ -67,7 +67,8 @@ Customized features would be:
 - Localized IFC loader
 - Customized PLY exporter
 - DAE (Collada) exporter, which was officially removed
-- Support for DAE (Collada) zipped files
+- Support for OBJ + MTL + textures zipped files
+- Support for DAE (Collada) + textures zipped files
 
 There might be bugs.
 

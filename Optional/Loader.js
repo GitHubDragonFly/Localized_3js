@@ -1172,6 +1172,24 @@ function Loader( editor ) {
 
 				switch ( extension ) {
 
+					case '3ds':
+
+					{
+
+						const { TDSLoader } = await import( 'three/addons/loaders/TDSLoader.js' );
+
+						const loader = new TDSLoader( manager );
+						const object = loader.parse( file.buffer );
+	
+						object.name = filename;
+						object.rotation.x = - Math.PI / 2;
+	
+						editor.execute( new AddObjectCommand( editor, object ) );
+
+						break;
+
+					}
+
 					case 'dae':
 
 					{

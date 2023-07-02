@@ -8,7 +8,7 @@ cors = CORS( app )
 app.config[ 'CORS_HEADERS' ] = 'Content-Type'
 
 folders = ['build/', 'docs/', 'editor/', 'examples/', 'files/', 'manual/', 'playground/', 'src/', 'test/', 'utils/']
-extensions = ['.ico', '.bmp', '.dib', '.gif', '.jpg', 'jpeg', '.jfif', '.png', '.svg', '.tga', '.webp', '.js', '.json', '.wasm']
+extensions = ['.ico', '.bmp', '.dib', '.gif', '.jpg', 'jpeg', '.jfif', '.png', '.svg', '.tga', '.webp', '.js', '.json']
 
 @app.route('/', methods=['GET'])
 def get_index():
@@ -28,6 +28,8 @@ def get_path( path ):
                 return Response( mimetype='text/css' )
             elif path.endswith('.map'):
                 return Response( mimetype='applicaton/json' )
+            elif path.endswith('.wasm'):
+                return Response( mimetype='application/wasm' )
             else:
                 return render_template( path )
         except Exception as e:

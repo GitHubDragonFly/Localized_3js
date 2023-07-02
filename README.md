@@ -70,6 +70,7 @@ Customized features would be mainly Editor related:
 - Customized PLY exporter
 - Customized DAE (Collada) loader to support THREE.Points
 - Added DAE (Collada) exporter, which was officially removed
+- Added support for loading 3DS + textures zipped files
 - Added support for loading OBJ + MTL + textures zipped files
 - Added support for loading DAE (Collada) + textures zipped files
 - modified `chevrotain.module.min.js` fixes the `unreachable code` warnings

@@ -47,6 +47,7 @@ These files / folders should be placed in the corresponding folder and replace a
 - `Loader.js` file --------------------	main folder/editor/js/
 - `Editor.js` file --------------------	main folder/editor/js/
 - `Menubar.File.js` file --------------	main folder/editor/js/
+- `ColladaLoader.js` file -----------	main folder/examples/jsm/loaders/
 - `IFCLoader.js` file -----------------	main folder/examples/jsm/loaders/
 - `IFCLoader.js.map` file -------------	main folder/examples/jsm/loaders/
 - `ifc` folder ------------------------	main folder/examples/jsm/loaders/

@@ -58,6 +58,7 @@ These files / folders should be placed in the corresponding folder and replace a
 - `OBJExporter.js` file ---------------	main folder/examples/jsm/exporters/
 - `PLYExporter.js` file ---------------	main folder/examples/jsm/exporters/
 - `ColladaExporter.js` file -----------	main folder/examples/jsm/exporters/
+- `chevrotain.module.min.js` ---------- main folder/examples/jsm/libs/
 
 Customized features would be mainly Editor related:
 
@@ -69,6 +70,7 @@ Customized features would be mainly Editor related:
 - DAE (Collada) exporter, which was officially removed
 - Support for loading OBJ + MTL + textures zipped files
 - Support for loading DAE (Collada) + textures zipped files
+- modified `chevrotain.module.min.js` fixes the `unreachable code` warnings
 
 There might be bugs.
 

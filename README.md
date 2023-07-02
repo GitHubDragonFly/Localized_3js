@@ -1,23 +1,23 @@
 # Localized and optionally customized three.js
 
-IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor or Examples (Docs) then here is a possible way of doing it with python.
+IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor and Examples (Docs) then here is a possible way of doing it with python.
 
-Note: Custom modified files are optional and should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
+Note: Optional custom modified files should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
 
 # Requirements
 
-Either of the below should work:
+Either of the following 2 choices below should work:
 
 - `python` + `Flask` and `flask_cors` packages
 - `VS Code` + `python` extension (from Microsoft Store) + `Flask` and `flask_cors` packages
 
 Packages are normally installed with `pip`, for example: `> pip install Flask`
 
-Required repository - download and extract the zip file from:
+`Required repository` - download and extract the zip file from:
 
 - `master` or `dev` branch or `releases` of the [three.js](https://github.com/mrdoob/three.js/), which when unzipped will create the `main folder`
 
-Optional repository - download and extract the zip file from:
+`Optional repository` - download and extract the zip file from:
 
 - [ldraw-parts-library](https://github.com/gkjohnson/ldraw-parts-library) for local LDRAW support, which when unzipped will create the `ldraw-parts-library-master` folder mentioned below
 
@@ -38,9 +38,9 @@ Optional repository - download and extract the zip file from:
   - or open the `app.py` file in VS Code, wait for it to find python interpreters and press `F5`
   - In the browser go to `http://localhost:5000` to see the page
 
-# Optional Custom Mods (use all or none)
+## Optional Custom Mods (use all or none)
 
-These files / folders should be placed in the corresponding folder and replace any existing files:
+These files / folders should be placed in their corresponding folder and replace any existing files:
 
 - `sw.js` file ------------------------	main folder/editor/
 - `Strings.js` file -------------------	main folder/editor/js/
@@ -70,14 +70,14 @@ Customized features would be mainly Editor related:
 - Customized PLY exporter
 - Customized DAE (Collada) loader to support THREE.Points
 - Added DAE (Collada) exporter, which was officially removed
-- Added support for loading 3DS + textures zipped files
-- Added support for loading OBJ + MTL + textures zipped files
-- Added support for loading DAE (Collada) + textures zipped files
+- Added support for loading `3DS + textures` zipped files
+- Added support for loading `OBJ + MTL + textures` zipped files
+- Added support for loading `DAE (Collada) + textures` zipped files
 - modified `chevrotain.module.min.js` fixes the `unreachable code` warnings
 
 There might be bugs.
 
-You could try using only some of these files but don't get surprised if eventually something doesn't work properly.
+You could also try using only some of these files but don't get surprised if eventually something doesn't work properly.
 
 # Mozilla Firefox screenshot
 

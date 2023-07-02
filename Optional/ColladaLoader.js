@@ -22,6 +22,8 @@ import {
 	MeshBasicMaterial,
 	MeshLambertMaterial,
 	MeshPhongMaterial,
+	Points,
+	PointsMaterial,
 	OrthographicCamera,
 	PerspectiveCamera,
 	PointLight,
@@ -1235,6 +1237,7 @@ class ColladaLoader extends Loader {
 
 					case 'constant':
 					case 'lambert':
+					case 'points':
 					case 'blinn':
 					case 'phong':
 						data.type = child.nodeName;
@@ -1569,6 +1572,10 @@ class ColladaLoader extends Loader {
 
 				case 'lambert':
 					material = new MeshLambertMaterial();
+					break;
+
+				case 'points':
+					material = new PointsMaterial();
 					break;
 
 				default:
@@ -3818,13 +3825,22 @@ class ColladaLoader extends Loader {
 
 					case 'triangles':
 					case 'polylist':
-						if ( skinning ) {
+						if ( type === 'triangles' && material.isPointsMaterial === true) {
 
-							object = new SkinnedMesh( geometry.data, material );
+							object = new Points( geometry.data, material );
+							object.material.size /= 20;
 
 						} else {
 
-							object = new Mesh( geometry.data, material );
+							if ( skinning ) {
+
+								object = new SkinnedMesh( geometry.data, material );
+
+							} else {
+
+								object = new Mesh( geometry.data, material );
+
+							}
 
 						}
 

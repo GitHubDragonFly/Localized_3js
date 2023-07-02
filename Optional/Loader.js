@@ -95,6 +95,9 @@ function Loader( editor ) {
 					loader.setLibraryPath( '../examples/jsm/libs/rhino3dm/' );
 					loader.parse( contents, function ( object ) {
 
+						object.name = filename;
+						object.rotation.x = - Math.PI / 2;
+
 						editor.execute( new AddObjectCommand( editor, object ) );
 
 					} );
@@ -117,6 +120,9 @@ function Loader( editor ) {
 					const loader = new TDSLoader();
 					const object = loader.parse( event.target.result );
 
+					object.name = filename;
+					object.rotation.x = - Math.PI / 2;
+
 					editor.execute( new AddObjectCommand( editor, object ) );
 
 				}, false );
@@ -137,6 +143,9 @@ function Loader( editor ) {
 					const loader = new ThreeMFLoader();
 					const object = loader.parse( event.target.result );
 
+					object.name = filename;
+					object.rotation.x = - Math.PI / 2;
+
 					editor.execute( new AddObjectCommand( editor, object ) );
 
 				}, false );
@@ -156,6 +165,9 @@ function Loader( editor ) {
 
 					const loader = new AMFLoader();
 					const amfobject = loader.parse( event.target.result );
+
+					amfobject.name = filename;
+					amfobject.rotation.x = - Math.PI / 2;
 
 					editor.execute( new AddObjectCommand( editor, amfobject ) );
 
@@ -247,6 +259,7 @@ function Loader( editor ) {
 
 					const loader = new FBXLoader( manager );
 					const object = loader.parse( contents );
+					object.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, object ) );
 
@@ -461,6 +474,7 @@ function Loader( editor ) {
 					loader.parse( event.target.result, function ( group ) {
 
 						group.name = filename;
+
 						// Convert from LDraw coordinates: rotate 180 degrees around OX
 						group.rotation.x = Math.PI;
 
@@ -535,10 +549,13 @@ function Loader( editor ) {
 
 					const contents = event.target.result;
 
-					const { PCDLoader } = await import( '../../examples/jsm/loaders/PCDLoader.js' );
+					const { PCDLoader } = await import( 'three/addons/loaders/PCDLoader.js' );
 
 					const points = new PCDLoader().parse( contents );
 					points.name = filename;
+
+					// Rotate 180 degrees around OX
+					points.rotation.x = Math.PI;
 
 					editor.execute( new AddObjectCommand( editor, points ) );
 
@@ -557,7 +574,7 @@ function Loader( editor ) {
 
 					const contents = event.target.result;
 
-					const { PDBLoader } = await import( '../../examples/jsm/loaders/PDBLoader.js' );
+					const { PDBLoader } = await import( 'three/addons/loaders/PDBLoader.js' );
 
 					let pdb = new PDBLoader().parse( contents );
 					pdb.name = filename;
@@ -702,6 +719,7 @@ function Loader( editor ) {
 					//
 
 					const group = new THREE.Group();
+					group.name = filename;
 					group.scale.multiplyScalar( 0.1 );
 					group.scale.y *= - 1;
 
@@ -746,7 +764,7 @@ function Loader( editor ) {
 
 					const contents = event.target.result;
 
-					const { USDZLoader } = await import( '../../examples/jsm/loaders/USDZLoader.js' );
+					const { USDZLoader } = await import( 'three/addons/loaders/USDZLoader.js' );
 
 					const group = new USDZLoader().parse( contents );
 					group.name = filename;
@@ -830,6 +848,7 @@ function Loader( editor ) {
 					const { VRMLLoader } = await import( 'three/addons/loaders/VRMLLoader.js' );
 
 					const result = new VRMLLoader().parse( contents );
+					result.name = filename;
 
 					editor.execute( new SetSceneCommand( editor, result ) );
 

@@ -77,6 +77,8 @@ Customized features would be mainly Editor related:
 
 There might be bugs.
 
+You could try using only some of these files but don't get surprised if eventually something doesn't work properly.
+
 # Mozilla Firefox screenshot
 
 Main Menu Page

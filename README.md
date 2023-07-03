@@ -10,8 +10,8 @@ The simplest requirements and approach (which I discovered after this repository
 - python3
   - get the `Required Repository` as stated below and unzipp it to create the `main folder`
   - add to the `main folder` the `index.html` file found in the `Required` folder of this repository
-  - use Terminal / Command Prompt, navigate to the `main folder` and run the following command:
-    - `python3 -m http.server 8000 --bind 127.0.0.1`
+  - use Terminal / Command Prompt, navigate to the `main folder` and run either of the following commands:
+    - `python3 -m http.server` or `python3 -m http.server 8000 --bind 127.0.0.1`
   - access the main page in your browser at `http://localhost:8000`
   - if you decide to use the optional customized files then read below on how to install all of them
 

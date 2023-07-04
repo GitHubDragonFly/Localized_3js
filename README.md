@@ -5,7 +5,7 @@ IF, for whatever reason, you might need to locally run the [three.js](https://gi
 Note: Optional custom modified files should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
 
 # Requirements
-The simplest requirements and approach (which I discovered after this repository was created):
+The simplest requirement and approach (which I discovered after this repository was created):
 
 - python3
   - get the `Required Repository` as stated below and unzipp it to create the `main folder`
@@ -15,7 +15,7 @@ The simplest requirements and approach (which I discovered after this repository
   - access the main page in your browser at `http://localhost:8000`
   - if you decide to use the optional customized files then read below on how to install all of them
 
-Either of the following 2 choices below should also work:
+As an alternative, either of the following 2 choices below should also work:
 
 - `python` + `Flask` and `flask_cors` packages
 - `VS Code` + `python` extension (from Microsoft Store) + `Flask` and `flask_cors` packages
@@ -49,26 +49,29 @@ Packages are normally installed with `pip`, for example: `> pip install Flask`
 
 ## Optional Custom Mods (use all or none)
 
+You could also try using only some of these files but don't get surprised if eventually something doesn't work properly.
+
 These files / folders should be placed in their corresponding folder and replace any existing files:
 
-- `sw.js` file ------------------------	main folder/editor/
-- `Strings.js` file -------------------	main folder/editor/js/
-- `Loader.js` file --------------------	main folder/editor/js/
+- "sw.js" file ------------------------	main folder/editor/
+- "Strings.js" file -------------------	main folder/editor/js/
+- "Loader.js" file --------------------	main folder/editor/js/
 - `Editor.js` file --------------------	main folder/editor/js/
-- `Menubar.File.js` file --------------	main folder/editor/js/
-- `ColladaLoader.js` file -----------	main folder/examples/jsm/loaders/
-- `IFCLoader.js` file -----------------	main folder/examples/jsm/loaders/
-- `IFCLoader.js.map` file -------------	main folder/examples/jsm/loaders/
-- `ifc` folder ------------------------	main folder/examples/jsm/loaders/
-- `MTLLoader.js` file -----------------	main folder/examples/jsm/loaders/
-- `XYZLoader.js` file -----------------	main folder/examples/jsm/loaders/
-- `LDRAWLoader.js` file ---------------	main folder/examples/jsm/loaders/
-- `ldraw-parts-library-master` folder -	main folder/editor/
-- `PRWMLoader.js` file ----------------	main folder/examples/jsm/loaders/
-- `OBJExporter.js` file ---------------	main folder/examples/jsm/exporters/
-- `PLYExporter.js` file ---------------	main folder/examples/jsm/exporters/
-- `ColladaExporter.js` file -----------	main folder/examples/jsm/exporters/
-- `chevrotain.module.min.js` ---------- main folder/examples/jsm/libs/
+- "Menubar.File.js" file --------------	main folder/editor/js/
+- "ui.three.js" file ------------------	main folder/editor/js/libs/
+- "ColladaLoader.js" file -------------	main folder/examples/jsm/loaders/
+- "IFCLoader.js" file -----------------	main folder/examples/jsm/loaders/
+- "IFCLoader.js.map" file -------------	main folder/examples/jsm/loaders/
+- "ifc" folder ------------------------	main folder/examples/jsm/loaders/
+- "MTLLoader.js" file -----------------	main folder/examples/jsm/loaders/
+- "XYZLoader.js" file -----------------	main folder/examples/jsm/loaders/
+- "LDRAWLoader.js" file ---------------	main folder/examples/jsm/loaders/
+- "ldraw-parts-library-master" folder -	main folder/editor/
+- "PRWMLoader.js" file ----------------	main folder/examples/jsm/loaders/
+- "OBJExporter.js" file ---------------	main folder/examples/jsm/exporters/
+- "PLYExporter.js" file ---------------	main folder/examples/jsm/exporters/
+- "ColladaExporter.js" file -----------	main folder/examples/jsm/exporters/
+- "chevrotain.module.min.js" ---------- main folder/examples/jsm/libs/
 
 Customized features would be mainly Editor related:
 
@@ -82,11 +85,10 @@ Customized features would be mainly Editor related:
 - Added support for loading `3DS + textures` zipped files
 - Added support for loading `OBJ + MTL + textures` zipped files
 - Added support for loading `DAE (Collada) + textures` zipped files
+- modified `ui.three.js` file allows using DDS and KTX2 images as maps
 - modified `chevrotain.module.min.js` fixes the `unreachable code` warnings
 
 There might be bugs.
-
-You could also try using only some of these files but don't get surprised if eventually something doesn't work properly.
 
 # Mozilla Firefox screenshot
 

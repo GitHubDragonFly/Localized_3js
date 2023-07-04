@@ -285,13 +285,15 @@ function Loader( editor ) {
 					const { KTX2Loader } = await import( 'three/addons/loaders/KTX2Loader.js' );
 					const { MeshoptDecoder } = await import( 'three/addons/libs/meshopt_decoder.module.js' );
 
-					const dracoLoader = new DRACOLoader();
+					const dracoLoader = new DRACOLoader( manager );
 					dracoLoader.setDecoderPath( '../examples/jsm/libs/draco/gltf/' );
 
-					const ktx2Loader = new KTX2Loader();
+					const ktx2Loader = new KTX2Loader( manager );
 					ktx2Loader.setTranscoderPath( '../examples/jsm/libs/basis/' );
+					// assume WebGLRenderer() use
+					ktx2Loader.detectSupport( new THREE.WebGLRenderer() );
 
-					const loader = new GLTFLoader();
+					const loader = new GLTFLoader( manager );
 					loader.setDRACOLoader( dracoLoader );
 					loader.setKTX2Loader( ktx2Loader );
 					loader.setMeshoptDecoder( MeshoptDecoder );
@@ -327,7 +329,7 @@ function Loader( editor ) {
 					const { DRACOLoader } = await import( 'three/addons/loaders/DRACOLoader.js' );
 					const { GLTFLoader } = await import( 'three/addons/loaders/GLTFLoader.js' );
 
-					const dracoLoader = new DRACOLoader();
+					const dracoLoader = new DRACOLoader( manager );
 					dracoLoader.setDecoderPath( '../examples/jsm/libs/draco/gltf/' );
 
 					const loader = new GLTFLoader( manager );

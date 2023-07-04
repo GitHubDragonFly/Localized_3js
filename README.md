@@ -53,25 +53,27 @@ You could also try using only some of these files but don't get surprised if eve
 
 These files / folders should be placed in their corresponding folder and replace any existing files:
 
-- "sw.js" file ------------------------	main folder/editor/
-- "Strings.js" file -------------------	main folder/editor/js/
-- "Loader.js" file --------------------	main folder/editor/js/
-- `Editor.js` file --------------------	main folder/editor/js/
-- "Menubar.File.js" file --------------	main folder/editor/js/
-- "ui.three.js" file ------------------	main folder/editor/js/libs/
-- "ColladaLoader.js" file -------------	main folder/examples/jsm/loaders/
-- "IFCLoader.js" file -----------------	main folder/examples/jsm/loaders/
-- "IFCLoader.js.map" file -------------	main folder/examples/jsm/loaders/
-- "ifc" folder ------------------------	main folder/examples/jsm/loaders/
-- "MTLLoader.js" file -----------------	main folder/examples/jsm/loaders/
-- "XYZLoader.js" file -----------------	main folder/examples/jsm/loaders/
-- "LDRAWLoader.js" file ---------------	main folder/examples/jsm/loaders/
-- "ldraw-parts-library-master" folder -	main folder/editor/
-- "PRWMLoader.js" file ----------------	main folder/examples/jsm/loaders/
-- "OBJExporter.js" file ---------------	main folder/examples/jsm/exporters/
-- "PLYExporter.js" file ---------------	main folder/examples/jsm/exporters/
-- "ColladaExporter.js" file -----------	main folder/examples/jsm/exporters/
-- "chevrotain.module.min.js" ---------- main folder/examples/jsm/libs/
+| file / folder | destination |
+|      :--      |     :--     |
+| sw.js (file) | main folder/editor/ |
+| Strings.js (file) | main folder/editor/js/ |
+| Loader.js (file) | main folder/editor/js/ |
+| Editor.js (file) | main folder/editor/js/ |
+| Menubar.File.js (file) | main folder/editor/js/ |
+| ui.three.js (file) | main folder/editor/js/libs/ |
+| ColladaLoader.js (file) | main folder/examples/jsm/loaders/ |
+| IFCLoader.js (file) | main folder/examples/jsm/loaders/ |
+| IFCLoader.js.map (file) | main folder/examples/jsm/loaders/ |
+| ifc (folder) | main folder/examples/jsm/loaders/ |
+| MTLLoader.js (file) | main folder/examples/jsm/loaders/ |
+| XYZLoader.js (file) | main folder/examples/jsm/loaders/ |
+| LDRAWLoader.js (file) | main folder/examples/jsm/loaders/ |
+| ldraw-parts-library-master (folder) | main folder/editor/ |
+| PRWMLoader.js (file) | main folder/examples/jsm/loaders/ |
+| OBJExporter.js (file) | main folder/examples/jsm/exporters/ |
+| PLYExporter.js (file) | main folder/examples/jsm/exporters/ |
+| ColladaExporter.js (file) | main folder/examples/jsm/exporters/ |
+| chevrotain.module.min.js (file) | main folder/examples/jsm/libs/ |
 
 Customized features would be mainly Editor related:
 

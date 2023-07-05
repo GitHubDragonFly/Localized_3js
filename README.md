@@ -5,10 +5,16 @@ IF, for whatever reason, you might need to locally run the [three.js](https://gi
 Note: Optional custom modified files should be implemented as either `all` or `none`. Try to read the whole description so you don't miss anything.
 
 # Requirements
-The simplest requirement and approach (which I discovered after this repository was created):
+
+`Required repository` - download and extract the zip file from:
+- `master` or `dev` branch or `releases` of the [three.js](https://github.com/mrdoob/three.js/), which when unzipped will create the `main folder`
+  - Possible `main folder` definitions could then be:
+    - `three.js-master` or `three.js-dev` or `three.js-rXXX` or some custom name
+
+The simplest requirement and approach for running:
 
 - python3
-  - get the `Required Repository` as stated below and unzipp it to create the `main folder`
+  - get the `Required Repository` as stated above and unzipp it to create the `main folder`
   - add to the `main folder` the `index.html` file found in the `Required` folder of this repository
   - use Terminal / Command Prompt, navigate to the `main folder` and run either of the following commands:
     - `python3 -m http.server` or `python3 -m http.server 8000 --bind 127.0.0.1`
@@ -22,18 +28,7 @@ As an alternative, either of the following 2 choices below should also work:
 
 Packages are normally installed with `pip`, for example: `> pip install Flask`
 
-`Required repository` - download and extract the zip file from:
-
-- `master` or `dev` branch or `releases` of the [three.js](https://github.com/mrdoob/three.js/), which when unzipped will create the `main folder`
-
-`Optional repository` - download and extract the zip file from:
-
-- [ldraw-parts-library](https://github.com/gkjohnson/ldraw-parts-library) for local LDRAW support, which when unzipped will create the `ldraw-parts-library-master` folder mentioned below
-
 # Folder Structure
-
-- Possible `main folder` definitions:
-  - `three.js-master` or `three.js-dev` or `three.js-rXXX` or some custom name
 
 - Required files for python / Flask run (add each file to the `main folder`):
 
@@ -74,6 +69,9 @@ These files / folders should be placed in their corresponding folder and replace
 | PLYExporter.js (file) | main folder/examples/jsm/exporters/ |
 | ColladaExporter.js (file) | main folder/examples/jsm/exporters/ |
 | chevrotain.module.min.js (file) | main folder/examples/jsm/libs/ |
+
+`Optional repository` - download and extract the zip file from:
+- [ldraw-parts-library](https://github.com/gkjohnson/ldraw-parts-library) for local LDRAW support, which when unzipped will create the `ldraw-parts-library-master` folder mentioned above
 
 Customized features would be mainly Editor related:
 

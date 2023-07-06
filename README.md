@@ -42,6 +42,8 @@ Packages are normally installed with `pip`, for example: `> pip install Flask` o
   - or open the `app.py` file in VS Code, wait for it to find python interpreters and press `F5`
   - In the browser go to `http://localhost:5000` to see the page
 
+I would recommend using VS Code since it allows to start / stop the server and edit files, all in one app.
+
 ## Optional Custom Mods (use all or none)
 
 These files / folders should be placed in their corresponding folder and replace any existing files:

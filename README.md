@@ -57,6 +57,7 @@ These files / folders should be placed in their corresponding folder and replace
 | Menubar.File.js (file) | main folder/editor/js/ |
 | ui.three.js (file) | main folder/editor/js/libs/ |
 | ColladaLoader.js (file) | main folder/examples/jsm/loaders/ |
+| FBXLoader.js (file) | main folder/examples/jsm/loaders/ |
 | IFCLoader.js (file) | main folder/examples/jsm/loaders/ |
 | IFCLoader.js.map (file) | main folder/examples/jsm/loaders/ |
 | ifc (folder) | main folder/examples/jsm/loaders/ |
@@ -77,10 +78,16 @@ Customized features would be mainly Editor related:
 
 - Automatic addition of `DirectionalLight` to the new scene
 - Customized PDB, PRWM, LDRAW and XYZ loaders
-- Customized MTL loader and OBJ exporter
 - Localized IFC loader
-- Customized PLY exporter
-- Customized DAE (Collada) loader to support THREE.Points
+- Customized OBJ exporter:
+  - it will export MTL file along with the OBJ model / textures
+- Customized MTL loader to support the above mentioned exported MTL file
+- Customized PLY exporter:
+  - converts material color to vertex color if the material has no texture
+- Customized DAE (Collada) loader:
+  - includes support for THREE.Points
+- Customized FBX loader:
+  - includes support for THREE.Points
 - Added DAE (Collada) exporter, which was officially removed
 - Added support for loading `3DS + textures` zipped files
 - Added support for loading `OBJ + MTL + textures` zipped files

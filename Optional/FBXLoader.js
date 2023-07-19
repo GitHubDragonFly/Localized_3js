@@ -1813,8 +1813,10 @@ class GeometryParser {
 		let faceUVs = [];
 		let faceWeights = [];
 		let faceWeightIndices = [];
-
 		const scope = this;
+
+		let points_faceColors = []; // will hold data for use with points model
+
 		geoInfo.vertexIndices.forEach( function ( vertexIndex, polygonVertexIndex ) {
 
 			let materialIndex;
@@ -1844,6 +1846,7 @@ class GeometryParser {
 				const data = getData( polygonVertexIndex, polygonIndex, vertexIndex, geoInfo.color );
 
 				faceColors.push( data[ 0 ], data[ 1 ], data[ 2 ] );
+				points_faceColors.push( data[ 0 ], data[ 1 ], data[ 2 ] );
 
 			}
 
@@ -1984,7 +1987,19 @@ class GeometryParser {
 
 			// Assume it is a points model
 			buffers.vertex = geoInfo.vertexPositions;
+
+			if ( points_faceColors.length > 0 ) {
+
+				slice( buffers.colors, points_faceColors, 0, points_faceColors.length );
+				points_faceColors.length = 0;
+
+			}
+
 			isPoints = true;
+
+		} else if ( points_faceColors.length > 0 ) {
+
+			points_faceColors.length = 0;
 
 		}
 

@@ -400,7 +400,6 @@ class MaterialCreator {
 					break;
 
 				case 'ke':
-				case 'map_emissive':
 
 					// Emissive using RGB values
 
@@ -424,6 +423,7 @@ class MaterialCreator {
 
 					break;
 
+				case 'map_emissive':
 				case 'map_ke':
 
 					// Emissive map
@@ -432,6 +432,7 @@ class MaterialCreator {
 
 					break;
 
+				case 'map_kn':
 				case 'norm':
 
 					setMapForType( 'normalMap', value );
@@ -484,7 +485,7 @@ class MaterialCreator {
 					params.lightMapIntensity = parseFloat( value );
 
 					break;
-	
+
 				case 'pm':
 
 					// Metalness
@@ -582,7 +583,6 @@ class MaterialCreator {
 
 					break;
 
-
 				case 'prfl':
 
 					// Reflectivity
@@ -653,7 +653,7 @@ class MaterialCreator {
 					use_phong = false;
 
 					break;
-											
+
 				case 'map_pl':
 
 					// Light map
@@ -661,7 +661,7 @@ class MaterialCreator {
 					setMapForType( 'lightMap', value );
 
 					break;
-	
+
 				case 'map_pm':
 
 					// Metalness map
@@ -770,7 +770,7 @@ class MaterialCreator {
 					use_phong = false;
 
 					break;
-									
+
 				case 'tr':
 					n = parseFloat( value );
 

@@ -325,24 +325,18 @@ class MaterialCreator {
 	createMaterial_( materialName ) {
 
 		// Create material
-
 		const scope = this;
 		const mat = this.materialsInfo[ materialName ];
 		const params = {
-
 			name: materialName,
 			side: this.side
-
 		};
 
 		function resolveURL( baseUrl, url ) {
 
-			if ( typeof url !== 'string' || url === '' )
-				return '';
+			if ( typeof url !== 'string' || url === '' ) return ''; // Absolute URL
 
-			// Absolute URL
 			if ( /^https?:\/\//i.test( url ) ) return url;
-
 			return baseUrl + url;
 
 		}
@@ -352,20 +346,11 @@ class MaterialCreator {
 			if ( params[ mapType ] ) return; // Keep the first encountered texture
 
 			const texParams = scope.getTextureParams( value, params );
-			const map = scope.loadTexture( resolveURL( scope.baseUrl, texParams.url ) );
-
+			const map = scope.loadTexture( resolveURL( scope.baseUrl, texParams.url ), null, materialName );
 			map.repeat.copy( texParams.scale );
 			map.offset.copy( texParams.offset );
-
 			map.wrapS = scope.wrap;
 			map.wrapT = scope.wrap;
-
-			if ( mapType === 'map' || mapType === 'emissiveMap' ) {
-
-				map.colorSpace = SRGBColorSpace;
-
-			}
-
 			params[ mapType ] = map;
 
 		}
@@ -376,92 +361,262 @@ class MaterialCreator {
 
 			const value = mat[ prop ];
 			let n;
-
 			if ( value === '' ) continue;
 
 			switch ( prop.toLowerCase() ) {
 
 				// Ns is material specular exponent
-
 				case 'kd':
-
 					// Diffuse color (color under white light) using RGB values
-
-					params.color = new Color().fromArray( value ).convertSRGBToLinear();
-
+					params.color = new Color().fromArray( value );
 					break;
 
 				case 'ks':
-
 					// Specular color (color when light is reflected from shiny surface) using RGB values
-
-					params.specular = new Color().fromArray( value ).convertSRGBToLinear();
-
+					params.specular = new Color().fromArray( value );
 					break;
 
 				case 'ke':
-
 					// Emissive using RGB values
-
-					params.emissive = new Color().fromArray( value ).convertSRGBToLinear();
-
+					params.emissive = new Color().fromArray( value );
 					break;
 
+				case 'map_ka':
+					// Ambient occlusion map
+					setMapForType( 'aoMap', value );
+					break;
+	
 				case 'map_kd':
-
 					// Diffuse texture map
-
 					setMapForType( 'map', value );
-
 					break;
 
 				case 'map_ks':
-
 					// Specular map
-
 					setMapForType( 'specularMap', value );
-
 					break;
 
 				case 'map_ke':
-
+				case 'map_emissive':
 					// Emissive map
-
 					setMapForType( 'emissiveMap', value );
-
 					break;
 
 				case 'norm':
-
+				case 'map_kn':
 					setMapForType( 'normalMap', value );
-
 					break;
 
-				case 'map_bump':
 				case 'bump':
-
+				case 'map_bump':
 					// Bump texture map
-
 					setMapForType( 'bumpMap', value );
-
 					break;
 
 				case 'map_d':
-
 					// Alpha map
-
 					setMapForType( 'alphaMap', value );
 					params.transparent = true;
-
 					break;
 
-				case 'ns':
+				case 'pli':
+					// Lightmap intensity
+					params.lightMapIntensity = parseFloat( value );
+					break;
 
+				case 'pm':
+					// Metalness
+					params.metalness = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pr':
+					// Roughness
+					params.roughness = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'disp_b':
+					// Displacement bias
+					params.displacementBias = parseFloat( value );
+					break;
+
+				case 'disp_s':
+					// Displacement scale
+					params.displacementScale = parseFloat( value );
+					break;
+
+				case 'pcc':
+					// Clearcoat
+					params.clearcoat = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pccr':
+					// Clearcoat roughness
+					params.clearcoatRoughness = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pccns':
+					// Clearcoat normal scale
+					params.clearcoatNormalScale = new Vector2().fromArray( value );
+					use_phong = false;
+					break;
+
+				case 'pior':
+					// Index-of-refraction for non-metallic materials
+					params.ior = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pir':
+					// Iridescence
+					params.iridescence = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pirior':
+					// Iridescence index-of-refraction
+					params.iridescenceIOR = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pirtr':
+					// Iridescence thickness range
+					params.iridescenceThicknessRange = new Vector2().fromArray( value );
+					use_phong = false;
+					break;
+		
+				case 'prfl':
+					// Reflectivity
+					params.reflectivity = parseFloat( value );
+					break;
+
+				case 'psh':
+					// The intensity of the sheen layer
+					params.sheen = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pshc':
+					// The sheen tint
+					params.sheenColor = new Color().fromArray( value );
+					use_phong = false;
+					break;
+
+				case 'pshr':
+					// Roughness of the sheen layer
+					params.sheenRoughness = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'psi':
+					// Specular intensity
+					params.specularIntensity = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'psc':
+					// Specular color
+					params.specularColor = new Color().fromArray( value );
+					use_phong = false;
+					break;
+
+				case 'pth':
+					// Thickness
+					params.thickness = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'ptr':
+					// Transmission
+					params.transmission = parseFloat( value );
+					use_phong = false;
+					break;
+										
+				case 'map_pl':
+					// Light map
+					setMapForType( 'lightMap', value );
+					break;
+
+				case 'map_pm':
+					// Metalness map
+					setMapForType( 'metalnessMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pr':
+					// Roughness map
+					setMapForType( 'roughnessMap', value );
+					use_phong = false;
+					break;
+
+				case 'disp':
+				case 'map_disp':
+					// Displacement map
+					setMapForType( 'displacementMap', value );
+					break;
+
+				case 'map_pccm':
+					// Clearcoat map
+					setMapForType( 'clearcoatMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pccnm':
+					// Clearcoat normal map
+					setMapForType( 'clearcoatNormalMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pccrm':
+					// Clearcoat roughness map
+					setMapForType( 'clearcoatRoughnessMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_ps':
+				case 'map_pshcm':
+					// Sheen layer color map
+					setMapForType( 'sheenColorMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pshrm':
+					// Sheen layer roughness map
+					setMapForType( 'sheenRoughnessMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_psim':
+					// Specular intensity map
+					setMapForType( 'specularIntensityMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pscm':
+					// Specular color map
+					setMapForType( 'specularColorMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_pthm':
+					// Thickness map
+					setMapForType( 'thicknessMap', value );
+					use_phong = false;
+					break;
+
+				case 'map_ptrm':
+					// Transmission map
+					setMapForType( 'transmissionMap', value );
+					use_phong = false;
+					break;
+								
+				case 'ns':
 					// The specular exponent (defines the focus of the specular highlight)
 					// A high exponent results in a tight, concentrated highlight. Ns values normally range from 0 to 1000.
-
 					params.shininess = parseFloat( value );
-
 					break;
 
 				case 'd':
@@ -476,273 +631,8 @@ class MaterialCreator {
 
 					break;
 
-				case 'pl':
-
-					// Lightmap intensity
-
-					params.lightMapIntensity = parseFloat( value );
-
-					break;
-	
-				case 'pm':
-
-					// Metalness
-
-					params.metalness = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'pr':
-
-					// Roughness
-
-					params.roughness = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'pdb':
-
-					// Displacement bias
-
-					params.displacementBias = parseFloat( value );
-
-					break;
-
-				case 'pds':
-
-					// Displacement scale
-
-					params.displacementScale = parseFloat( value );
-
-					break;
-
-				case 'pcc':
-
-					// Clearcoat
-
-					params.clearcoat = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'pccr':
-
-					// Clearcoat roughness
-
-					params.clearcoatRoughness = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'pccns':
-
-					// Clearcoat normal scale
-
-					params.clearcoatNormalScale = new Vector2().fromArray( value );
-					use_phong = false;
-
-					break;
-
-				case 'pior':
-
-					// Index-of-refraction for non-metallic materials
-
-					params.ior = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'prfl':
-
-					// Reflectivity
-
-					params.reflectivity = parseFloat( value );
-
-					break;
-	
-				case 'psh':
-
-					// The intensity of the sheen layer
-
-					params.sheen = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'pshc':
-
-					// The sheen tint
-
-					params.sheenColor = new Color().fromArray( value );
-					use_phong = false;
-
-					break;
-
-				case 'pshr':
-
-					// Roughness of the sheen layer
-
-					params.sheenRoughness = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'psi':
-
-					// Specular intensity
-
-					params.specularIntensity = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'psc':
-
-					// Specular color
-
-					params.specularColor = new Color().fromArray( value );
-					use_phong = false;
-
-					break;
-
-				case 'pth':
-
-					// Thickness
-
-					params.thickness = parseFloat( value );
-					use_phong = false;
-
-					break;
-
-				case 'ptr':
-
-					// Transmission
-
-					params.transmission = parseFloat( value );
-					use_phong = false;
-
-					break;
-											
-				case 'map_pl':
-
-					// Light map
-
-					setMapForType( 'lightMap', value );
-
-					break;
-	
-				case 'map_pm':
-
-					// Metalness map
-
-					setMapForType( 'metalnessMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pr':
-
-					// Roughness map
-
-					setMapForType( 'roughnessMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pd':
-
-					// Displacement map
-
-					setMapForType( 'displacementMap', value );
-
-					break;
-
-				case 'map_pccm':
-
-					// Clearcoat map
-
-					setMapForType( 'clearcoatMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pccnm':
-
-					// Clearcoat normal map
-
-					setMapForType( 'clearcoatNormalMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pccrm':
-
-					// Clearcoat roughness map
-
-					setMapForType( 'clearcoatRoughnessMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pshcm':
-
-					// Sheen layer color map
-
-					setMapForType( 'sheenColorMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pshrm':
-
-					// Sheen layer roughness map
-
-					setMapForType( 'sheenRoughnessMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_psim':
-
-					// Specular intensity map
-
-					setMapForType( 'specularIntensityMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pscm':
-
-					// Specular color map
-
-					setMapForType( 'specularColorMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_pthm':
-
-					// Thickness map
-
-					setMapForType( 'thicknessMap', value );
-					use_phong = false;
-
-					break;
-
-				case 'map_ptrm':
-
-					// Transmission map
-
-					setMapForType( 'transmissionMap', value );
-					use_phong = false;
-
-					break;
-									
 				case 'tr':
 					n = parseFloat( value );
-
 					if ( this.options && this.options.invertTrProperty ) n = 1 - n;
 
 					if ( n > 0 ) {

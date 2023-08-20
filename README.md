@@ -62,6 +62,7 @@ These files / folders should be placed in their corresponding folder and replace
 | IFCLoader.js.map (file) | main folder/examples/jsm/loaders/ |
 | ifc (folder) | main folder/examples/jsm/loaders/ |
 | MTLLoader.js (file) | main folder/examples/jsm/loaders/ |
+| USDZLoader.js (file) | main folder/examples/jsm/loaders/ |
 | XYZLoader.js (file) | main folder/examples/jsm/loaders/ |
 | LDRAWLoader.js (file) | main folder/examples/jsm/loaders/ |
 | ldraw-parts-library-master (folder) | main folder/editor/ |

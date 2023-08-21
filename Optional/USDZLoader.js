@@ -195,7 +195,7 @@ class USDZLoader extends Loader {
 
 			for ( const filename in zip ) {
 
-				if ( filename.endsWith( 'usda' ) ) {
+				if ( filename.endsWith( 'usd' ) || filename.endsWith( 'usda' ) ) {
 
 					return zip[ filename ];
 
@@ -459,6 +459,13 @@ class USDZLoader extends Loader {
 
 					const surface = data[ 'def Shader "PreviewSurface"' ];
 
+					if ( 'color3f inputs:diffuseColor' in surface ) {
+
+						const color = surface[ 'color3f inputs:diffuseColor' ].replace( /[()]*/g, '' );
+						material.color.fromArray( JSON.parse( '[' + color + ']' ) );
+
+					}
+
 					if ( 'color3f inputs:diffuseColor.connect' in surface ) {
 
 						const path = surface[ 'color3f inputs:diffuseColor.connect' ];
@@ -467,10 +474,12 @@ class USDZLoader extends Loader {
 						material.map = buildTexture( sampler );
 						material.map.colorSpace = SRGBColorSpace;
 
-					} else if ( 'color3f inputs:diffuseColor' in surface ) {
+					}
 
-						const color = surface[ 'color3f inputs:diffuseColor' ].replace( /[()]*/g, '' );
-						material.color.fromArray( JSON.parse( '[' + color + ']' ) );
+					if ( 'color3f inputs:emissiveColor' in surface ) {
+
+						const color = surface[ 'color3f inputs:emissiveColor' ].replace( /[()]*/g, '' );
+						material.emissive.fromArray( JSON.parse( '[' + color + ']' ) );
 
 					}
 
@@ -481,12 +490,14 @@ class USDZLoader extends Loader {
 
 						material.emissiveMap = buildTexture( sampler );
 						material.emissiveMap.colorSpace = SRGBColorSpace;
-						material.emissive.fromArray( JSON.parse( '[ 1, 1, 1 ]' ) );
+						if ( ( material.emissive.getHex() > 0 ) === false ) material.emissive.fromArray( [ 1, 1, 1 ] );
 
-					} else if ( 'color3f inputs:emissiveColor' in surface ) {
+					}
 
-						const color = surface[ 'color3f inputs:emissiveColor' ].replace( /[()]*/g, '' );
-						material.emissive.fromArray( JSON.parse( '[' + color + ']' ) );
+					if ( 'color3f inputs:specularColor' in surface ) {
+
+						const color = surface[ 'color3f inputs:specularColor' ].replace( /[()]*/g, '' );
+						material.specularColor.fromArray( JSON.parse( '[' + color + ']' ) );
 
 					}
 
@@ -504,7 +515,9 @@ class USDZLoader extends Loader {
 
 						material.roughness = parseFloat( surface[ 'float inputs:roughness' ] );
 
-					} else if ( 'float inputs:roughness.connect' in surface ) {
+					}
+
+					if ( 'float inputs:roughness.connect' in surface ) {
 
 						const path = surface[ 'float inputs:roughness.connect' ];
 						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
@@ -528,7 +541,9 @@ class USDZLoader extends Loader {
 
 						material.metalness = parseFloat( surface[ 'float inputs:metallic' ] );
 
-					} else if ( 'float inputs:metallic.connect' in surface ) {
+					}
+
+					if ( 'float inputs:metallic.connect' in surface ) {
 
 						const path = surface[ 'float inputs:metallic.connect' ];
 						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
@@ -542,7 +557,9 @@ class USDZLoader extends Loader {
 
 						material.opacity = parseFloat( surface[ 'float inputs:opacity' ] );
 
-					} else if ( 'float inputs:opacity.connect' in surface ) {
+					}
+
+					if ( 'float inputs:opacity.connect' in surface ) {
 
 						const path = surface[ 'float inputs:opacity.connect' ];
 						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
@@ -558,9 +575,29 @@ class USDZLoader extends Loader {
 
 					}
 
+					if ( 'float inputs:clearcoat.connect' in surface ) {
+
+						const path = surface[ 'float inputs:clearcoat.connect' ];
+						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
+
+						material.clearcoatMap = buildTexture( sampler );
+						material.clearcoatMap.colorSpace = SRGBColorSpace;
+
+					}
+
 					if ( 'float inputs:clearcoatRoughness' in surface ) {
 
 						material.clearcoatRoughness = parseFloat( surface[ 'float inputs:clearcoatRoughness' ] );
+
+					}
+
+					if ( 'float inputs:clearcoatRoughness.connect' in surface ) {
+
+						const path = surface[ 'float inputs:clearcoatRoughness.connect' ];
+						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
+
+						material.clearcoatRoughnessMap = buildTexture( sampler );
+						material.clearcoatRoughnessMap.colorSpace = SRGBColorSpace;
 
 					}
 

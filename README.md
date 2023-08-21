@@ -69,6 +69,7 @@ These files / folders should be placed in their corresponding folder and replace
 | PRWMLoader.js (file) | main folder/examples/jsm/loaders/ |
 | OBJExporter.js (file) | main folder/examples/jsm/exporters/ |
 | PLYExporter.js (file) | main folder/examples/jsm/exporters/ |
+| USDZExporter.js (file) | main folder/examples/jsm/exporters/ |
 | ColladaExporter.js (file) | main folder/examples/jsm/exporters/ |
 | chevrotain.module.min.js (file) | main folder/examples/jsm/libs/ |
 
@@ -79,6 +80,7 @@ Customized features would be mainly Editor related:
 
 - Automatic addition of `DirectionalLight` to the new scene
 - Customized PDB, PRWM, LDRAW, USDZ and XYZ loaders
+- Customized USDZ exporter
 - Localized IFC loader
 - Customized OBJ exporter:
   - it will export MTL file along with the OBJ model / textures

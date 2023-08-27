@@ -56,6 +56,7 @@ These files / folders should be placed in their corresponding folder and replace
 | Editor.js (file) | main folder/editor/js/ |
 | Menubar.File.js (file) | main folder/editor/js/ |
 | ui.three.js (file) | main folder/editor/js/libs/ |
+| BIMLoader.js (file) | main folder/examples/jsm/loaders/ |
 | ColladaLoader.js (file) | main folder/examples/jsm/loaders/ |
 | FBXLoader.js (file) | main folder/examples/jsm/loaders/ |
 | IFCLoader.js (file) | main folder/examples/jsm/loaders/ |
@@ -80,6 +81,7 @@ Customized features would be mainly Editor related:
 
 - Automatic addition of `DirectionalLight` to the new scene
 - Customized PDB, PRWM, LDRAW, USDZ and XYZ loaders
+- Unofficial BIM loader ([dotbim](https://github.com/ricaun/dotbim.three.js) based)
 - Customized USDZ exporter
 - Localized IFC loader
 - Customized OBJ exporter:

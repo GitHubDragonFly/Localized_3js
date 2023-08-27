@@ -178,6 +178,28 @@ function Loader( editor ) {
 
 			}
 
+			case 'bim':
+
+			{
+
+				reader.addEventListener( 'load', async function ( event ) {
+
+					const { BIMLoader } = await import( 'three/addons/loaders/BIMLoader.js' );
+
+					const loader = new BIMLoader();
+					const bimobject = loader.parse( event.target.result );
+
+					bimobject.name = filename;
+
+					editor.execute( new AddObjectCommand( editor, bimobject ) );
+
+				}, false );
+				reader.readAsText( file );
+
+				break;
+
+			}
+
 			case 'dae':
 
 			{

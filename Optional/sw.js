@@ -34,6 +34,7 @@ const assets = [
 	'../examples/jsm/loaders/3DMLoader.js',
 	'../examples/jsm/loaders/3MFLoader.js',
 	'../examples/jsm/loaders/AMFLoader.js',
+	'../examples/jsm/loaders/BIMLoader.js',
 	'../examples/jsm/loaders/ColladaLoader.js',
 	'../examples/jsm/loaders/DRACOLoader.js',
 	'../examples/jsm/loaders/FBXLoader.js',

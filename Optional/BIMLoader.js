@@ -86,13 +86,16 @@ class BIMLoader extends Loader {
 
 			dotbim_Elemments2Meshes( elements, geometries ).forEach( bim_mesh => {
 
+				bim_mesh[ 'name' ] = 'mesh_' + bim_mesh.id;
+
 				bim_meshes.add( bim_mesh );
+
 				if ( bim_mesh.edges ) bim_edges.add( bim_mesh.edges );
 
 			});
 
 			if ( bim_meshes.children.length > 1 ) bim_meshes.rotateX( - Math.PI / 2 );
-			if ( bim_edges.children.length > 0 ) bim_meshes[ 'edges' ] = bim_edges;
+			if ( bim_edges.children.length > 0 ) bim_meshes.userData[ 'edges' ] = bim_edges;
 
 			return bim_meshes;
 
@@ -199,7 +202,6 @@ class BIMLoader extends Loader {
 
 			let geometry = new BufferGeometry();
 
-			geometry.name = 'mesh_' + mesh_id;
 			geometry.setIndex( indices );
 			geometry.setAttribute( 'position', new Float32BufferAttribute( coordinates, 3 ) );
 			geometry = geometry.toNonIndexed(); // Use this to remove Index and make color work with face

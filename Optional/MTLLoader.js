@@ -716,6 +716,24 @@ class MaterialCreator {
 
 					break;
 
+				case 'map_pirm':
+
+					// Iridescence map
+
+					setMapForType( 'iridescenceMap', value );
+					use_phong = false;
+
+					break;
+
+				case 'map_pirthm':
+
+					// Iridescence thickness map
+
+					setMapForType( 'iridescenceThicknessMap', value );
+					use_phong = false;
+
+					break;
+
 				case 'map_ps':
 				case 'map_pshcm':
 

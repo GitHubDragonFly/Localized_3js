@@ -125,7 +125,6 @@ class BIMLoader extends Loader {
 			dotbim_Elemments2Meshes( elements, geometries ).forEach( bim_mesh => {
 
 				bim_mesh[ 'name' ] = 'mesh_' + bim_mesh.id;
-
 				bim_meshes.add( bim_mesh );
 
 			});
@@ -245,6 +244,9 @@ class BIMLoader extends Loader {
 
 				mesh.setMatrixAt( mesh_id_key.current_instance, matrix );
 				mesh.instanceMatrix.needsUpdate = true;
+
+				mesh.setColorAt( mesh_id_key.current_instance, material.color );
+				mesh.instanceColor.needsUpdate = true;
 
 				mesh_id_key.current_instance++;
 			}

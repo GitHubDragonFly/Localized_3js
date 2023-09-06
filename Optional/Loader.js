@@ -185,13 +185,25 @@ function Loader( editor ) {
 				reader.addEventListener( 'load', async function ( event ) {
 
 					const { BIMLoader } = await import( 'three/addons/loaders/BIMLoader.js' );
+					const { createMeshesFromInstancedMesh } = await import( 'three/addons/utils/SceneUtils.js' );
 
 					const loader = new BIMLoader();
-					const bimobject = loader.parse( event.target.result );
+					const bim_meshes = loader.parse( event.target.result );
 
-					bimobject.name = filename;
+					const meshes = new THREE.Group();
+					meshes.name = filename;
 
-					editor.execute( new AddObjectCommand( editor, bimobject ) );
+					bim_meshes.traverse( bim_mesh => {
+
+						if ( bim_mesh.isInstancedMesh ) {
+
+							meshes.add( createMeshesFromInstancedMesh( bim_mesh ) );
+
+						}
+
+					});
+
+					editor.execute( new AddObjectCommand( editor, meshes ) );
 
 				}, false );
 				reader.readAsText( file );

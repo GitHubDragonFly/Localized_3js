@@ -1146,27 +1146,511 @@ function Loader( editor ) {
 
 					Object.keys( obj_textures ).forEach( textureKey => {
 
-						if ( value.bump && textureKey.endsWith( value.bump.indexOf( '/' ) > -1 ? value.bump.substring( value.bump.lastIndexOf( '/' ) + 1 ) : value.bump ) ) value.bump = obj_textures[ textureKey ];
-						if ( value.norm && textureKey.endsWith( value.norm.indexOf( '/' ) > -1 ? value.norm.substring( value.norm.lastIndexOf( '/' ) + 1 ) : value.norm ) ) value.norm = obj_textures[ textureKey ];
-						if ( value.map_d && textureKey.endsWith( value.map_d.indexOf( '/' ) > -1 ? value.map_d.substring( value.map_d.lastIndexOf( '/' ) + 1 ) : value.map_d ) ) value.map_d = obj_textures[ textureKey ];
-						if ( value.map_ka && textureKey.endsWith( value.map_ka.indexOf( '/' ) > -1 ? value.map_ka.substring( value.map_ka.lastIndexOf( '/' ) + 1 ) : value.map_ka ) ) value.map_ka = obj_textures[ textureKey ];
-						if ( value.map_kd && textureKey.endsWith( value.map_kd.indexOf( '/' ) > -1 ? value.map_kd.substring( value.map_kd.lastIndexOf( '/' ) + 1 ) : value.map_kd ) ) value.map_kd = obj_textures[ textureKey ];
-						if ( value.map_ke && textureKey.endsWith( value.map_ke.indexOf( '/' ) > -1 ? value.map_ke.substring( value.map_ke.lastIndexOf( '/' ) + 1 ) : value.map_ke ) ) value.map_ke = obj_textures[ textureKey ];
-						if ( value.map_ks && textureKey.endsWith( value.map_ks.indexOf( '/' ) > -1 ? value.map_ks.substring( value.map_ks.lastIndexOf( '/' ) + 1 ) : value.map_ks ) ) value.map_ks = obj_textures[ textureKey ];
-						if ( value.map_pd && textureKey.endsWith( value.map_pd.indexOf( '/' ) > -1 ? value.map_pd.substring( value.map_pd.lastIndexOf( '/' ) + 1 ) : value.map_pd ) ) value.map_pd = obj_textures[ textureKey ];
-						if ( value.map_pl && textureKey.endsWith( value.map_pl.indexOf( '/' ) > -1 ? value.map_pl.substring( value.map_pl.lastIndexOf( '/' ) + 1 ) : value.map_pl ) ) value.map_pl = obj_textures[ textureKey ];
-						if ( value.map_pm && textureKey.endsWith( value.map_pm.indexOf( '/' ) > -1 ? value.map_pm.substring( value.map_pm.lastIndexOf( '/' ) + 1 ) : value.map_pm ) ) value.map_pm = obj_textures[ textureKey ];
-						if ( value.map_pr && textureKey.endsWith( value.map_pr.indexOf( '/' ) > -1 ? value.map_pr.substring( value.map_pr.lastIndexOf( '/' ) + 1 ) : value.map_pr ) ) value.map_pr = obj_textures[ textureKey ];
-						if ( value.map_bump && textureKey.endsWith( value.map_bump.indexOf( '/' ) > -1 ? value.map_bump.substring( value.map_bump.lastIndexOf( '/' ) + 1 ) : value.map_bump ) ) value.map_bump = obj_textures[ textureKey ];
-						if ( value.map_pscm && textureKey.endsWith( value.map_pscm.indexOf( '/' ) > -1 ? value.map_pscm.substring( value.map_pscm.lastIndexOf( '/' ) + 1 ) : value.map_pscm ) ) value.map_pscm = obj_textures[ textureKey ];
-						if ( value.map_psim && textureKey.endsWith( value.map_psim.indexOf( '/' ) > -1 ? value.map_psim.substring( value.map_psim.lastIndexOf( '/' ) + 1 ) : value.map_psim ) ) value.map_psim = obj_textures[ textureKey ];
-						if ( value.map_pccm && textureKey.endsWith( value.map_pccm.indexOf( '/' ) > -1 ? value.map_pccm.substring( value.map_pccm.lastIndexOf( '/' ) + 1 ) : value.map_pccm ) ) value.map_pccm = obj_textures[ textureKey ];
-						if ( value.map_pthm && textureKey.endsWith( value.map_pthm.indexOf( '/' ) > -1 ? value.map_pthm.substring( value.map_pthm.lastIndexOf( '/' ) + 1 ) : value.map_pthm ) ) value.map_pthm = obj_textures[ textureKey ];
-						if ( value.map_ptrm && textureKey.endsWith( value.map_ptrm.indexOf( '/' ) > -1 ? value.map_ptrm.substring( value.map_ptrm.lastIndexOf( '/' ) + 1 ) : value.map_ptrm ) ) value.map_ptrm = obj_textures[ textureKey ];
-						if ( value.map_pccnm && textureKey.endsWith( value.map_pccnm.indexOf( '/' ) > -1 ? value.map_pccnm.substring( value.map_pccnm.lastIndexOf( '/' ) + 1 ) : value.map_pccnm ) ) value.map_pccnm = obj_textures[ textureKey ];
-						if ( value.map_pccrm && textureKey.endsWith( value.map_pccrm.indexOf( '/' ) > -1 ? value.map_pccrm.substring( value.map_pccrm.lastIndexOf( '/' ) + 1 ) : value.map_pccrm ) ) value.map_pccrm = obj_textures[ textureKey ];
-						if ( value.map_pshcm && textureKey.endsWith( value.map_pshcm.indexOf( '/' ) > -1 ? value.map_pshcm.substring( value.map_pshcm.lastIndexOf( '/' ) + 1 ) : value.map_pshcm ) ) value.map_pshcm = obj_textures[ textureKey ];
-						if ( value.map_pshrm && textureKey.endsWith( value.map_pshrm.indexOf( '/' ) > -1 ? value.map_pshrm.substring( value.map_pshrm.lastIndexOf( '/' ) + 1 ) : value.map_pshrm ) ) value.map_pshrm = obj_textures[ textureKey ];
+						let str = '';
+
+						if ( value.bump ) {
+
+							if ( value.bump.indexOf( '/' ) > -1 ) {
+
+								str = value.bump.substring( value.bump.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.bump.indexOf( '\\' ) > -1 ) {
+
+								str = value.bump.substring( value.bump.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.bump.indexOf( '-s' ) > -1 || value.bump.indexOf( '-o' ) > -1 ) {
+
+								str = value.bump.substring( value.bump.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.bump;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.bump = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.norm ) {
+
+							if ( value.norm.indexOf( '/' ) > -1 ) {
+
+								str = value.norm.substring( value.norm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.norm.indexOf( '\\' ) > -1 ) {
+
+								str = value.norm.substring( value.norm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.norm.indexOf( '-s' ) > -1 || value.norm.indexOf( '-o' ) > -1 ) {
+
+								str = value.norm.substring( value.norm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.norm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.norm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_d ) {
+
+							if ( value.map_d.indexOf( '/' ) > -1 ) {
+
+								str = value.map_d.substring( value.map_d.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_d.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_d.substring( value.map_d.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_d.indexOf( '-s' ) > -1 || value.map_d.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_d.substring( value.map_d.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_d;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_d = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_ka ) {
+
+							if ( value.map_ka.indexOf( '/' ) > -1 ) {
+
+								str = value.map_ka.substring( value.map_ka.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_ka.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_ka.substring( value.map_ka.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_ka.indexOf( '-s' ) > -1 || value.map_ka.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_ka.substring( value.map_ka.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_ka;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_ka = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_kd ) {
+
+							if ( value.map_kd.indexOf( '/' ) > -1 ) {
+
+								str = value.map_kd.substring( value.map_kd.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_kd.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_kd.substring( value.map_kd.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_kd.indexOf( '-s' ) > -1 || value.map_kd.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_kd.substring( value.map_kd.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_kd;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_kd = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_ke ) {
+
+							if ( value.map_ke.indexOf( '/' ) > -1 ) {
+
+								str = value.map_ke.substring( value.map_ke.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_ke.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_ke.substring( value.map_ke.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_ke.indexOf( '-s' ) > -1 || value.map_ke.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_ke.substring( value.map_ke.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_ke;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_ke = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_ks ) {
+
+							if ( value.map_ks.indexOf( '/' ) > -1 ) {
+
+								str = value.map_ks.substring( value.map_ks.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_ks.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_ks.substring( value.map_ks.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_ks.indexOf( '-s' ) > -1 || value.map_ks.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_ks.substring( value.map_ks.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_ks;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_ks = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pd ) {
+
+							if ( value.map_pd.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pd.substring( value.map_pd.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pd.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pd.substring( value.map_pd.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pd.indexOf( '-s' ) > -1 || value.map_pd.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pd.substring( value.map_pd.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pd;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pd = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pl ) {
+
+							if ( value.map_pl.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pl.substring( value.map_pl.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pl.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pl.substring( value.map_pl.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pl.indexOf( '-s' ) > -1 || value.map_pl.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pl.substring( value.map_pl.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pl;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pl = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pm ) {
+
+							if ( value.map_pm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pm.substring( value.map_pm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pm.substring( value.map_pm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pm.indexOf( '-s' ) > -1 || value.map_pm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pm.substring( value.map_pm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pr ) {
+
+							if ( value.map_pr.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pr.substring( value.map_pr.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pr.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pr.substring( value.map_pr.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pr.indexOf( '-s' ) > -1 || value.map_pr.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pr.substring( value.map_pr.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pr;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pr = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_bump ) {
+
+							if ( value.map_bump.indexOf( '/' ) > -1 ) {
+
+								str = value.map_bump.substring( value.map_bump.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_bump.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_bump.substring( value.map_bump.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_bump.indexOf( '-s' ) > -1 || value.map_bump.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_bump.substring( value.map_bump.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_bump;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_bump = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pscm ) {
+
+							if ( value.map_pscm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pscm.substring( value.map_pscm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pscm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pscm.substring( value.map_pscm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pscm.indexOf( '-s' ) > -1 || value.map_pscm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pscm.substring( value.map_pscm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pscm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pscm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_psim ) {
+
+							if ( value.map_psim.indexOf( '/' ) > -1 ) {
+
+								str = value.map_psim.substring( value.map_psim.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_psim.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_psim.substring( value.map_psim.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_psim.indexOf( '-s' ) > -1 || value.map_psim.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_psim.substring( value.map_psim.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_psim;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_psim = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pccm ) {
+
+							if ( value.map_pccm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pccm.substring( value.map_pccm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pccm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pccm.substring( value.map_pccm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pccm.indexOf( '-s' ) > -1 || value.map_pccm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pccm.substring( value.map_pccm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pccm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pccm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pthm ) {
+
+							if ( value.map_pthm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pthm.substring( value.map_pthm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pthm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pthm.substring( value.map_pthm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pthm.indexOf( '-s' ) > -1 || value.map_pthm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pthm.substring( value.map_pthm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pthm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pthm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_ptrm ) {
+
+							if ( value.map_ptrm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_ptrm.substring( value.map_ptrm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_ptrm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_ptrm.substring( value.map_ptrm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_ptrm.indexOf( '-s' ) > -1 || value.map_ptrm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_ptrm.substring( value.map_ptrm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_ptrm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_ptrm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pccnm ) {
+
+							if ( value.map_pccnm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pccnm.substring( value.map_pccnm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pccnm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pccnm.substring( value.map_pccnm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pccnm.indexOf( '-s' ) > -1 || value.map_pccnm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pccnm.substring( value.map_pccnm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pccnm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pccnm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pccrm ) {
+
+							if ( value.map_pccrm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pccrm.substring( value.map_pccrm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pccrm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pccrm.substring( value.map_pccrm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pccrm.indexOf( '-s' ) > -1 || value.map_pccrm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pccrm.substring( value.map_pccrm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pccrm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pccrm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pshcm ) {
+
+							if ( value.map_pshcm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pshcm.substring( value.map_pshcm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pshcm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pshcm.substring( value.map_pshcm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pshcm.indexOf( '-s' ) > -1 || value.map_pshcm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pshcm.substring( value.map_pshcm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pshcm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pshcm = obj_textures[ textureKey ];
+
+						}
+
+						if ( value.map_pshrm ) {
+
+							if ( value.map_pshrm.indexOf( '/' ) > -1 ) {
+
+								str = value.map_pshrm.substring( value.map_pshrm.lastIndexOf( '/' ) + 1 );
+
+							} else if ( value.map_pshrm.indexOf( '\\' ) > -1 ) {
+
+								str = value.map_pshrm.substring( value.map_pshrm.lastIndexOf( '\\' ) + 1 );
+
+							} else if ( value.map_pshrm.indexOf( '-s' ) > -1 || value.map_pshrm.indexOf( '-o' ) > -1 ) {
+
+								str = value.map_pshrm.substring( value.map_pshrm.lastIndexOf( ' ' ) + 1 );
+
+							} else {
+
+								str = value.map_pshrm;
+
+							}
+
+							if ( textureKey.endsWith( str ) ) value.map_pshrm = obj_textures[ textureKey ];
+
+						}
 
 					});
 
@@ -1174,7 +1658,10 @@ function Loader( editor ) {
 
 			}
 
+			materials.preload();
+
 			let object = new OBJLoader().setMaterials( materials ).parse( strFromU8( obj_file ) );
+
 			object.name = filename;
 
 			editor.execute( new AddObjectCommand( editor, object ) );

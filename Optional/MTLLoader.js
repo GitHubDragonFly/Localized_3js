@@ -8,9 +8,9 @@ import {
 	MeshPhongMaterial,
 	MeshPhysicalMaterial,
 	RepeatWrapping,
+	SRGBColorSpace,
 	TextureLoader,
-	Vector2,
-	SRGBColorSpace
+	Vector2
 } from 'three';
 
 /**
@@ -128,7 +128,7 @@ class MTLLoader extends Loader {
 
 			} else {
 
-				if ( key === 'ka' || key === 'kd' || key === 'ks' || key === 'ke' ) {
+				if ( key === 'ka' || key === 'kd' || key === 'ks' || key === 'ke' || key === 'patc' || key === 'psc' || key === 'pshc' ) {
 
 					const ss = value.split( delimiter_pattern, 3 );
 					info[ key ] = [ parseFloat( ss[ 0 ] ), parseFloat( ss[ 1 ] ), parseFloat( ss[ 2 ] ) ];
@@ -174,6 +174,7 @@ class MaterialCreator {
 
 		this.baseUrl = baseUrl;
 		this.options = options;
+		this.originalMaterialsInfo = {};
 		this.materialsInfo = {};
 		this.materials = {};
 		this.materialsArray = [];
@@ -201,6 +202,7 @@ class MaterialCreator {
 
 	setMaterials( materialsInfo ) {
 
+		this.originalMaterialsInfo = materialsInfo;
 		this.materialsInfo = this.convert( materialsInfo );
 		this.materials = {};
 		this.materialsArray = [];
@@ -235,6 +237,9 @@ class MaterialCreator {
 					case 'kd':
 					case 'ka':
 					case 'ks':
+					case 'patc':
+					case 'psc':
+					case 'pshc':
 
 						// Diffuse color (color under white light) using RGB values
 
@@ -328,6 +333,8 @@ class MaterialCreator {
 
 		const scope = this;
 		const mat = this.materialsInfo[ materialName ];
+		const original_mat = this.originalMaterialsInfo[ materialName ];
+
 		const params = {
 
 			name: materialName,
@@ -347,12 +354,12 @@ class MaterialCreator {
 
 		}
 
-		function setMapForType( mapType, value ) {
+		function setMapForType( mapType, value, prop ) {
 
 			if ( params[ mapType ] ) return; // Keep the first encountered texture
 
-			const texParams = scope.getTextureParams( value, params );
-			const map = scope.loadTexture( resolveURL( scope.baseUrl, texParams.url ) );
+			const texParams = scope.getTextureParams( original_mat[ prop ] );
+			const map = scope.loadTexture( resolveURL( scope.baseUrl, value ) );
 
 			map.repeat.copy( texParams.scale );
 			map.offset.copy( texParams.offset );
@@ -379,9 +386,19 @@ class MaterialCreator {
 
 			if ( value === '' ) continue;
 
-			switch ( prop.toLowerCase() ) {
+			const lprop = prop.toLowerCase();
+
+			switch ( lprop ) {
 
 				// Ns is material specular exponent
+
+				case 'ka':
+
+					// Ambient occlusion map intensity
+
+					params.aoMapIntensity = parseFloat( value[ 0 ] );
+
+					break;
 
 				case 'kd':
 
@@ -407,11 +424,19 @@ class MaterialCreator {
 
 					break;
 
+				case 'map_ka':
+
+					// Ambient occlusion map
+
+					setMapForType( 'aoMap', value, lprop );
+
+					break;
+
 				case 'map_kd':
 
 					// Diffuse texture map
 
-					setMapForType( 'map', value );
+					setMapForType( 'map', value, lprop );
 
 					break;
 
@@ -419,7 +444,7 @@ class MaterialCreator {
 
 					// Specular map
 
-					setMapForType( 'specularMap', value );
+					setMapForType( 'specularMap', value, lprop );
 
 					break;
 
@@ -428,14 +453,14 @@ class MaterialCreator {
 
 					// Emissive map
 
-					setMapForType( 'emissiveMap', value );
+					setMapForType( 'emissiveMap', value, lprop );
 
 					break;
 
 				case 'map_kn':
 				case 'norm':
 
-					setMapForType( 'normalMap', value );
+					setMapForType( 'normalMap', value, lprop );
 
 					break;
 
@@ -444,7 +469,7 @@ class MaterialCreator {
 
 					// Bump texture map
 
-					setMapForType( 'bumpMap', value );
+					setMapForType( 'bumpMap', value, lprop );
 
 					break;
 
@@ -452,9 +477,18 @@ class MaterialCreator {
 
 					// Alpha map
 
-					setMapForType( 'alphaMap', value );
+					setMapForType( 'alphaMap', value, lprop );
 					params.transparent = true;
 
+					break;
+
+				case 'disp':
+				case 'map_disp':
+
+					// Displacement map
+	
+					setMapForType( 'displacementMap', value, lprop );
+	
 					break;
 
 				case 'ns':
@@ -486,6 +520,24 @@ class MaterialCreator {
 
 					break;
 
+				case 'patd':
+
+					// Attenuation distance
+
+					params.attenuationDistance = parseFloat( value );
+					use_phong = false;
+
+					break;
+
+				case 'patc':
+
+					// Attenuation color
+
+					params.attenuationColor = new THREE.Color().fromArray( value );
+					use_phong = false;
+
+					break;
+
 				case 'pm':
 
 					// Metalness
@@ -500,6 +552,15 @@ class MaterialCreator {
 					// Roughness
 
 					params.roughness = parseFloat( value );
+					use_phong = false;
+
+					break;
+
+				case 'pns':
+
+					// Normal Scale - how much the normal map affects the material
+
+					params.normalScale = new THREE.Vector2().fromArray( value );
 					use_phong = false;
 
 					break;
@@ -658,7 +719,7 @@ class MaterialCreator {
 
 					// Light map
 
-					setMapForType( 'lightMap', value );
+					setMapForType( 'lightMap', value, lprop );
 
 					break;
 
@@ -666,7 +727,7 @@ class MaterialCreator {
 
 					// Metalness map
 
-					setMapForType( 'metalnessMap', value );
+					setMapForType( 'metalnessMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -675,17 +736,8 @@ class MaterialCreator {
 
 					// Roughness map
 
-					setMapForType( 'roughnessMap', value );
+					setMapForType( 'roughnessMap', value, lprop );
 					use_phong = false;
-
-					break;
-
-				case 'disp':
-				case 'map_disp':
-
-					// Displacement map
-
-					setMapForType( 'displacementMap', value );
 
 					break;
 
@@ -693,7 +745,7 @@ class MaterialCreator {
 
 					// Clearcoat map
 
-					setMapForType( 'clearcoatMap', value );
+					setMapForType( 'clearcoatMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -702,7 +754,7 @@ class MaterialCreator {
 
 					// Clearcoat normal map
 
-					setMapForType( 'clearcoatNormalMap', value );
+					setMapForType( 'clearcoatNormalMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -711,7 +763,7 @@ class MaterialCreator {
 
 					// Clearcoat roughness map
 
-					setMapForType( 'clearcoatRoughnessMap', value );
+					setMapForType( 'clearcoatRoughnessMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -720,7 +772,7 @@ class MaterialCreator {
 
 					// Iridescence map
 
-					setMapForType( 'iridescenceMap', value );
+					setMapForType( 'iridescenceMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -729,7 +781,7 @@ class MaterialCreator {
 
 					// Iridescence thickness map
 
-					setMapForType( 'iridescenceThicknessMap', value );
+					setMapForType( 'iridescenceThicknessMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -739,7 +791,7 @@ class MaterialCreator {
 
 					// Sheen layer color map
 
-					setMapForType( 'sheenColorMap', value );
+					setMapForType( 'sheenColorMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -748,7 +800,7 @@ class MaterialCreator {
 
 					// Sheen layer roughness map
 
-					setMapForType( 'sheenRoughnessMap', value );
+					setMapForType( 'sheenRoughnessMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -757,7 +809,7 @@ class MaterialCreator {
 
 					// Specular intensity map
 
-					setMapForType( 'specularIntensityMap', value );
+					setMapForType( 'specularIntensityMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -766,7 +818,7 @@ class MaterialCreator {
 
 					// Specular color map
 
-					setMapForType( 'specularColorMap', value );
+					setMapForType( 'specularColorMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -775,7 +827,7 @@ class MaterialCreator {
 
 					// Thickness map
 
-					setMapForType( 'thicknessMap', value );
+					setMapForType( 'thicknessMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -784,7 +836,7 @@ class MaterialCreator {
 
 					// Transmission map
 
-					setMapForType( 'transmissionMap', value );
+					setMapForType( 'transmissionMap', value, lprop );
 					use_phong = false;
 
 					break;
@@ -815,6 +867,14 @@ class MaterialCreator {
 			this.materials[ materialName ] = new MeshPhongMaterial( params );
 
 		} else {
+
+			if ( params.transmission && params.metalness === undefined ) {
+
+				// if material roughness is not specified then override
+				// the default value of 1.0 to allow transmission effect
+				if ( params.roughness === undefined ) params.roughness = 0.0;
+
+			}
 
 			this.materials[ materialName ] = new MeshPhysicalMaterial( params );
 
@@ -850,7 +910,7 @@ class MaterialCreator {
 		if ( pos >= 0 ) {
 
 			texParams.scale.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-			items.splice( pos, 4 ); // we expect 3 parameters here!
+			items.splice( pos, 5 ); // we expect 4 parameters here!
 
 		}
 
@@ -859,11 +919,10 @@ class MaterialCreator {
 		if ( pos >= 0 ) {
 
 			texParams.offset.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-			items.splice( pos, 4 ); // we expect 3 parameters here!
+			items.splice( pos, 5 ); // we expect 4 parameters here!
 
 		}
 
-		texParams.url = items.join( ' ' ).trim();
 		return texParams;
 
 	}

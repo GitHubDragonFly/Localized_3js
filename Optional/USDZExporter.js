@@ -3,7 +3,15 @@ import * as fflate from '../libs/fflate.module.js';
 
 class USDZExporter {
 
-	async parse( scene ) {
+	async parse( scene, options = {} ) {
+
+		options = Object.assign( {
+			ar: {
+				anchoring: { type: 'plane' },
+				planeAnchoring: { alignment: 'horizontal' }
+			},
+			quickLookCompatible: false,
+		}, options );
 
 		const files = {};
 		const modelFileName = 'model.usda'; // model file should be first in USDZ archive so we init it here
@@ -47,7 +55,8 @@ class USDZExporter {
 			}
 
 		} );
-		output += buildMaterials( materials, textures );
+
+		output += buildMaterials( materials, textures, options.quickLookCompatible );
 		files[ modelFileName ] = fflate.strToU8( output );
 		output = null;
 
@@ -60,9 +69,10 @@ class USDZExporter {
 			const blob = await new Promise( resolve => canvas.toBlob( resolve, isRGBA ? 'image/png' : 'image/jpeg', 1 ) );
 			files[ `textures/Texture_${id}.${isRGBA ? 'png' : 'jpg'}` ] = new Uint8Array( await blob.arrayBuffer() );
 
-		} // 64 byte alignment
-		// https://github.com/101arrowz/fflate/issues/39#issuecomment-777263109
+		}
 
+		// 64 byte alignment
+		// https://github.com/101arrowz/fflate/issues/39#issuecomment-777263109
 
 		let offset = 0;
 
@@ -326,14 +336,14 @@ function buildVector2Array( attribute, count ) {
 } // Materials
 
 
-function buildMaterials( materials, textures ) {
+function buildMaterials( materials, textures, quickLookCompatible = false ) {
 
 	const array = [];
 
 	for ( const uuid in materials ) {
 
 		const material = materials[ uuid ];
-		array.push( buildMaterial( material, textures ) );
+		array.push( buildMaterial( material, textures, quickLookCompatible ) );
 
 	}
 
@@ -346,7 +356,7 @@ ${array.join( '' )}
 
 }
 
-function buildMaterial( material, textures ) {
+function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	// https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
 	const pad = '            ';
@@ -355,10 +365,59 @@ function buildMaterial( material, textures ) {
 
 	function buildTexture( texture, mapType, color ) {
 
+		const uv = texture.channel > 0 ? 'st' + texture.channel : 'st';
+
+		const WRAPPINGS = {
+			1000: 'repeat', // RepeatWrapping
+			1001: 'clamp', // ClampToEdgeWrapping
+			1002: 'mirror' // MirroredRepeatWrapping
+		};
+
 		const id = texture.id + ( color ? '_' + color.getHexString() : '' );
 		const isRGBA = texture.format === 1023;
 		textures[ id ] = texture;
+
+		const repeat = texture.repeat.clone();
+		const offset = texture.offset.clone();
+		const rotation = texture.rotation;
+
+		// rotation is around the wrong point. after rotation we need to shift offset again so that we're rotating around the right spot
+		const xRotationOffset = Math.sin( rotation );
+		const yRotationOffset = Math.cos( rotation );
+
+		// texture coordinates start in the opposite corner, need to correct
+		offset.y = 1 - offset.y - repeat.y;
+
+		// turns out QuickLook is buggy and interprets texture repeat inverted/applies operations in a different order.
+		// Apple Feedback: 	FB10036297 and FB11442287
+		if ( quickLookCompatible ) {
+
+			// This is NOT correct yet in QuickLook, but comes close for a range of models.
+			// It becomes more incorrect the bigger the offset is
+
+			offset.x = offset.x / repeat.x;
+			offset.y = offset.y / repeat.y;
+
+			offset.x += xRotationOffset / repeat.x;
+			offset.y += yRotationOffset - 1;
+
+		} else {
+
+			// results match glTF results exactly. verified correct in usdview.
+			offset.x += xRotationOffset * repeat.x;
+			offset.y += ( 1 - yRotationOffset ) * repeat.y;
+
+		}
+
 		return `
+	def Shader "PrimvarReader_${ mapType }"
+	{
+		uniform token info:id = "UsdPrimvarReader_float2"
+		float2 inputs:fallback = (0.0, 0.0)
+		token inputs:varname = "${ uv }"
+		float2 outputs:result
+	}
+
 	def Shader "Transform2d_${mapType}" (
 		sdrMetadata = {
 			string role = "math"
@@ -368,6 +427,7 @@ function buildMaterial( material, textures ) {
 		uniform token info:id = "UsdTransform2d"
 		float2 inputs:in.connect = </Materials/Material_${material.id}/uvReader_st.outputs:result>
 		float2 inputs:scale = ${buildVector2( texture.repeat )}
+		float inputs:rotation = ${ ( rotation * ( 180 / Math.PI ) ).toFixed( PRECISION ) }
 		float2 inputs:translation = ${buildVector2( texture.offset )}
 		float2 outputs:result
 	}
@@ -377,8 +437,8 @@ function buildMaterial( material, textures ) {
 		uniform token info:id = "UsdUVTexture"
 		asset inputs:file = @textures/Texture_${id}.${isRGBA ? 'png' : 'jpg'}@
 		float2 inputs:st.connect = </Materials/Material_${material.id}/Transform2d_${mapType}.outputs:result>
-		token inputs:wrapS = "repeat"
-		token inputs:wrapT = "repeat"
+		token inputs:wrapS = "${ WRAPPINGS[ texture.wrapS ] }"
+		token inputs:wrapT = "${ WRAPPINGS[ texture.wrapT ] }"
 		float outputs:r
 		float outputs:g
 		float outputs:b

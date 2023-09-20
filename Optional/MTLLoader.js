@@ -533,7 +533,7 @@ class MaterialCreator {
 
 					// Attenuation color
 
-					params.attenuationColor = new THREE.Color().fromArray( value );
+					params.attenuationColor = new Color().fromArray( value ).convertSRGBToLinear();
 					use_phong = false;
 
 					break;
@@ -560,7 +560,7 @@ class MaterialCreator {
 
 					// Normal Scale - how much the normal map affects the material
 
-					params.normalScale = new THREE.Vector2().fromArray( value );
+					params.normalScale = new Vector2().fromArray( value );
 					use_phong = false;
 
 					break;
@@ -639,7 +639,8 @@ class MaterialCreator {
 
 					// Iridescence thickness range
 
-					params.iridescenceThicknessRange = new Vector2().fromArray( value );
+					const values = value.split( ' ' );
+					params.iridescenceThicknessRange = new Uint32Array( values );
 					use_phong = false;
 
 					break;
@@ -665,7 +666,7 @@ class MaterialCreator {
 
 					// The sheen tint
 
-					params.sheenColor = new Color().fromArray( value );
+					params.sheenColor = new Color().fromArray( value ).convertSRGBToLinear();
 					use_phong = false;
 
 					break;
@@ -692,7 +693,7 @@ class MaterialCreator {
 
 					// Specular color
 
-					params.specularColor = new Color().fromArray( value );
+					params.specularColor = new Color().fromArray( value ).convertSRGBToLinear();
 					use_phong = false;
 
 					break;
@@ -884,7 +885,7 @@ class MaterialCreator {
 
 	}
 
-	getTextureParams( value, matParams ) {
+	getTextureParams( value ) {
 
 		const texParams = {
 
@@ -900,7 +901,7 @@ class MaterialCreator {
 
 		if ( pos >= 0 ) {
 
-			matParams.bumpScale = parseFloat( items[ pos + 1 ] );
+			texParams.bumpScale = parseFloat( items[ pos + 1 ] );
 			items.splice( pos, 2 );
 
 		}

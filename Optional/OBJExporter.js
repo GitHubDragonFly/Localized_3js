@@ -1,13 +1,15 @@
 import {
 	Color,
 	Matrix3,
+	Texture,
 	Vector2,
 	Vector3
 } from 'three';
+import { decompress } from './../utils/TextureUtils.js';
 
 class OBJExporter {
 
-	parse( object, filename = 'model' ) {
+	parse( object, filename = 'model', onDone ) {
 
 		let output = '';
 		let indexVertex = 0;
@@ -36,7 +38,7 @@ class OBJExporter {
 
 			if ( geometry.isBufferGeometry !== true ) {
 
-				throw new Error( 'THREE.OBJExporter: Geometry is not of type THREE.BufferGeometry.' );
+				throw new Error( 'THREE.OBJExporter: Geometry is not THREE.BufferGeometry.' );
 
 			}
 
@@ -49,11 +51,15 @@ class OBJExporter {
 			const indices = geometry.getIndex();
 
 			// name of the mesh object
-			if (mesh.name === '') {
+			if ( mesh.name === '' ) {
+
 				mesh[ 'name' ] = 'mesh_' + mesh_count;
+
 			} else {
-				mesh.name = mesh.name.replace( '#', '' );
-				mesh.name = mesh.name.replace( ' ', '_' );
+
+				mesh.name = mesh.name.replaceAll( '#', '' );
+				mesh.name = mesh.name.replaceAll( ' ', '_' );
+
 			}
 
 			output += 'o ' + mesh.name + '\n';
@@ -61,26 +67,48 @@ class OBJExporter {
 			// name of the mesh material
 			if ( mesh.material && mesh.material.name ) {
 
-				if (mesh.material.name === '') {
+				if ( mesh.material.name === '' ) {
+
 					mesh.material[ 'name' ] = 'mesh_material_' + mesh_count;
+
 				} else if ( mesh.material.name.toUpperCase().endsWith( '.PNG' ) || mesh.material.name.toUpperCase().endsWith( '.JPG' ) ) {
+
 					mesh.material[ 'name' ] = mesh.material.name.substring( 0, mesh.material.name.lastIndexOf( '.' ) );
+
 				}
 
-				mesh.material.name = mesh.material.name.replace( '#', '' );
-				mesh.material.name = mesh.material.name.replace( ' ', '_' );
+				mesh.material.name = mesh.material.name.replaceAll( '#', '' );
+				mesh.material.name = mesh.material.name.replaceAll( ' ', '_' );
 
 				let temp_name = mesh.material.name;
 
-				if (material_names.includes( temp_name ) === false || material_colors[ temp_name ] !== mesh.material.color) {
-					if (material_colors[ temp_name ] !== mesh.material.color) mesh.material.name = temp_name;
+				if ( material_names.includes( temp_name ) === false || material_colors[ temp_name ] !== mesh.material.color ) {
 
-					material_names.push( mesh.material.name );
-					material_colors[ mesh.material.name ] = mesh.material.color;
+					if ( material_colors[ temp_name ] !== mesh.material.color ) mesh.material.name = temp_name;
+
+					material_colors[ temp_name ] = mesh.material.color;
+
 				}
 
-				output += 'usemtl ' + mesh.material.name + '\n';
-				materials[ mesh.material.name ] = mesh.material;
+				if ( ! materials[ temp_name ] || ( materials[ temp_name ] && materials[ temp_name ] !== mesh.material ) ) {
+
+					if ( materials[ temp_name ] && materials[ temp_name ] !== mesh.material ) {
+
+						temp_name = mesh.material.name + '_' + mesh_count;
+						mesh.material.name = temp_name;
+						output += 'usemtl ' + temp_name + '\n';
+						materials[ temp_name ] = mesh.material;
+
+					} else {
+
+						output += 'usemtl ' + mesh.material.name + '\n';
+						materials[ mesh.material.name ] = mesh.material;
+
+					}
+
+				}
+
+				material_names.push( temp_name );
 
 			} else if ( mesh.material && Array.isArray( mesh.material ) ) {
 
@@ -92,15 +120,19 @@ class OBJExporter {
 
 					for ( let i = 0, l = groups.length; i < l; i ++ ) {
 
-						if (mesh.material[ groups[ i ].materialIndex ].name === '') {
+						if ( mesh.material[ groups[ i ].materialIndex ].name === '' ) {
+
 							mesh.material[ groups[ i ].materialIndex ][ 'name' ] = 'mesh_group_material_' + mesh_count + '_' + mesh_group_material_count;
 							mesh_group_material_count += 1;
+
 						} else if ( mesh.material[ groups[ i ].materialIndex ].name.toUpperCase().endsWith( '.PNG' ) || mesh.material[ groups[ i ].materialIndex ].name.toUpperCase().endsWith( '.JPG' ) ) {
+
 							mesh.material[ groups[ i ].materialIndex ][ 'name' ] = mesh.material[ groups[ i ].materialIndex ].name.substring( 0, mesh.material[ groups[ i ].materialIndex ].name.lastIndexOf( '.' ) );
+
 						}
 
-						mesh.material[ groups[ i ].materialIndex ].name = mesh.material[ groups[ i ].materialIndex ].name.replace( '#', '' );
-						mesh.material[ groups[ i ].materialIndex ].name = mesh.material[ groups[ i ].materialIndex ].name.replace( ' ', '_' );
+						mesh.material[ groups[ i ].materialIndex ].name = mesh.material[ groups[ i ].materialIndex ].name.replaceAll( '#', '' );
+						mesh.material[ groups[ i ].materialIndex ].name = mesh.material[ groups[ i ].materialIndex ].name.replaceAll( ' ', '_' );
 						multi_materials[ groups[ i ].start ] = mesh.material[ groups[ i ].materialIndex ].name;
 
 					}
@@ -430,14 +462,14 @@ class OBJExporter {
 			output = 'mtllib ' + filename + '.mtl' + '\n' + output;
 
 			let mtlOutput = '# MTL file - created by a modified three.js OBJExporter' + '\n';
-			let textures = [];
-			let names = [];
 			let map_uuids = [];
 			let map_names = {};
-			const ext = 'png';
+			let textures = [];
+			let names = [];
 			let count = 1;
 
-			let image_extensions = [ '.PNG', '.JPG', '.JPEG', '.JFIF', '.PJP', '.PJPEG', '.BMP', '.GIF', '.SVG', '.WEBP' ];
+			const ext = 'png';
+			const image_extensions = [ '.PNG', '.JPG', '.JPEG', '.JFIF', '.PJP', '.PJPEG', '.BMP', '.GIF', '.SVG', '.WEBP' ];
 
 			Object.keys( materials ).forEach( ( key ) => {
 
@@ -461,14 +493,15 @@ class OBJExporter {
 			function set_mtl_params_textures( mat) {
 
 				let name = ( mat.name && mat.name !== '' ) ? ( image_extensions.some( ext => mat.name.toUpperCase().endsWith( ext ) ) ? mat.name.substring( 0, mat.name.lastIndexOf( '.' ) ) : mat.name ) : 'material' + mat.id;
-				name = name.replace( '#', '' );
-				name = name.replace( ' ', '_' );
+				name = name.replaceAll( '#', '' );
+				name = name.replaceAll( ' ', '_' );
 
 				if ( names.includes( name ) === false ) {
 
 					names.push( name );
 
 					let transparency = ( mat.opacity < 1 ) ? ( 1 - mat.opacity ) : '0.0000';
+					if ( mat.transparent === true && parseFloat( transparency ) === 0 ) transparency = '0.0001';
 
 					mtlOutput += '\n' + 'newmtl ' + name + '\n';
 
@@ -483,7 +516,7 @@ class OBJExporter {
 					if ( mat.refractionRatio ) mtlOutput += 'Ni ' + mat.refractionRatio + '\n';
 					if ( mat.metalness ) mtlOutput += 'Pm ' + mat.metalness + '\n';
 					if ( mat.roughness ) mtlOutput += 'Pr ' + mat.roughness + '\n';
-					if ( mat.normalScale ) mtlOutput += 'Pns ' + mat.normalScale.x + ' ' + mat.normalScale.y + '\n';
+					if ( mat.normalScale && ! mat.sheen ) mtlOutput += 'Pns ' + mat.normalScale.x + ' ' + mat.normalScale.y + '\n';
 					if ( mat.displacementBias ) mtlOutput += 'disp_b ' + mat.displacementBias + '\n';
 					if ( mat.displacementScale ) mtlOutput += 'disp_s ' + mat.displacementScale + '\n';
 					if ( mat.lightMapIntensity ) mtlOutput += 'Pli ' + mat.lightMapIntensity + '\n';
@@ -515,7 +548,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.map.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.map.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.map.repeat.x;
 							const ys = mat.map.repeat.y;
@@ -555,7 +588,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.specularMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.specularMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.specularMap.repeat.x;
 							const ys = mat.specularMap.repeat.y;
@@ -597,7 +630,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.emissiveMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.emissiveMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.emissiveMap.repeat.x;
 							const ys = mat.emissiveMap.repeat.y;
@@ -639,7 +672,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.bumpMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.bumpMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.bumpMap.repeat.x;
 							const ys = mat.bumpMap.repeat.y;
@@ -697,7 +730,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.lightMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.lightMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.lightMap.repeat.x;
 							const ys = mat.lightMap.repeat.y;
@@ -739,7 +772,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.metalnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.metalnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.metalnessMap.repeat.x;
 							const ys = mat.metalnessMap.repeat.y;
@@ -781,7 +814,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.roughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.roughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.roughnessMap.repeat.x;
 							const ys = mat.roughnessMap.repeat.y;
@@ -823,7 +856,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.displacementMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.displacementMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.displacementMap.repeat.x;
 							const ys = mat.displacementMap.repeat.y;
@@ -865,7 +898,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.normalMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.normalMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.normalMap.repeat.x;
 							const ys = mat.normalMap.repeat.y;
@@ -907,7 +940,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.alphaMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.alphaMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.alphaMap.repeat.x;
 							const ys = mat.alphaMap.repeat.y;
@@ -949,7 +982,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.aoMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.aoMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.aoMap.repeat.x;
 							const ys = mat.aoMap.repeat.y;
@@ -991,7 +1024,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.clearcoatMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.clearcoatMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.clearcoatMap.repeat.x;
 							const ys = mat.clearcoatMap.repeat.y;
@@ -1033,7 +1066,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.clearcoatNormalMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.clearcoatNormalMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.clearcoatNormalMap.repeat.x;
 							const ys = mat.clearcoatNormalMap.repeat.y;
@@ -1075,7 +1108,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.clearcoatRoughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.clearcoatRoughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.clearcoatRoughnessMap.repeat.x;
 							const ys = mat.clearcoatRoughnessMap.repeat.y;
@@ -1117,7 +1150,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.iridescenceMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.iridescenceMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.iridescenceMap.repeat.x;
 							const ys = mat.iridescenceMap.repeat.y;
@@ -1159,7 +1192,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.iridescenceThicknessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.iridescenceThicknessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.iridescenceThicknessMap.repeat.x;
 							const ys = mat.iridescenceThicknessMap.repeat.y;
@@ -1201,7 +1234,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.sheenColorMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.sheenColorMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.sheenColorMap.repeat.x;
 							const ys = mat.sheenColorMap.repeat.y;
@@ -1243,7 +1276,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.sheenRoughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.sheenRoughnessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.sheenRoughnessMap.repeat.x;
 							const ys = mat.sheenRoughnessMap.repeat.y;
@@ -1285,7 +1318,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.specularIntensityMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.specularIntensityMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.specularIntensityMap.repeat.x;
 							const ys = mat.specularIntensityMap.repeat.y;
@@ -1327,7 +1360,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.specularColorMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.specularColorMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.specularColorMap.repeat.x;
 							const ys = mat.specularColorMap.repeat.y;
@@ -1369,7 +1402,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.thicknessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.thicknessMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.thicknessMap.repeat.x;
 							const ys = mat.thicknessMap.repeat.y;
@@ -1411,7 +1444,7 @@ class OBJExporter {
 
 						}
 
-						if ( mat.transmissionMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data ) {
+						if ( mat.transmissionMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
 
 							const xs = mat.transmissionMap.repeat.x;
 							const ys = mat.transmissionMap.repeat.y;
@@ -1449,11 +1482,31 @@ class OBJExporter {
 
 			}
 
-			return { obj: output, mtl: mtlOutput, tex: textures };
+			Promise.all( textures ).then( () => {
+
+				if ( typeof onDone === 'function' ) {
+
+					onDone( { obj: output, mtl: mtlOutput, tex: textures } );
+
+				} else {
+
+					return { obj: output, mtl: mtlOutput, tex: textures };
+
+				}
+
+			});
 
 		} else {
 
-			return { obj: output };
+			if ( typeof onDone === 'function' ) {
+
+				onDone( { obj: output } );
+
+			} else {
+
+				return { obj: output };
+
+			}
 
 		}
 

@@ -231,16 +231,16 @@ function MenubarFile( editor ) {
 									toZip[ `${ tex.name }.${ tex.ext }` ] = new Uint8Array( reader.result );
 
 									if ( processed_index === result.textures.length ) {
-  
+
 										zip_and_save( 'model_DAE', toZip );
 										return;
-  
+
 									}
-  
+
 								});
 
 								reader.readAsArrayBuffer( canvas_blob );
-							
+
 							});
 
 							processed_index += 1;
@@ -253,14 +253,16 @@ function MenubarFile( editor ) {
 					} else {
 
 						toZip[ `${ tex.name }.${ tex.ext }` ] = tex.data;
-				
+
 					}
 
 				});
 
-			}
+			} else {
 
-			if ( editor.flip_required === false ) zip_and_save( 'model_DAE', toZip );
+				zip_and_save( 'model_DAE', toZip );
+
+			}
 
 		} );
 
@@ -389,81 +391,89 @@ function MenubarFile( editor ) {
 
 		}
 
-		let exported = exporter.parse( object, 'model' );
+		exporter.parse( object, filename, function ( exported ) {
 
-		toZip[ filename + '.obj' ] = strToU8( exported[ 'obj' ] );
+			toZip[ filename + '.obj' ] = strToU8( exported[ 'obj' ] );
 
-		if ( exported[ 'mtl' ] !== undefined ) {
+			if ( exported[ 'mtl' ] !== undefined ) {
 
-			toZip[ filename + '.mtl' ] = strToU8( exported[ 'mtl' ] );
+				toZip[ filename + '.mtl' ] = strToU8( exported[ 'mtl' ] );
 
-			if ( exported[ 'tex' ] !== undefined && exported[ 'tex' ].length > 0 ) {
+				if ( exported[ 'tex' ] !== undefined && exported[ 'tex' ].length > 0 ) {
 
-				let processed_index = 0;
+					let processed_index = 0;
 
-				exported[ 'tex' ].forEach( tex => {
+					exported[ 'tex' ].forEach( tex => {
 
-					if ( editor.flip_required === true ) {
+						if ( editor.flip_required === true ) {
 
-						let blob = new Blob( [ tex.data ], { type: 'image/png' } );
+							let blob = new Blob( [ tex.data ], { type: 'image/png' } );
 
-						let img = new Image();
+							let img = new Image();
 
-						img.onload = async function() {
+							img.onload = async function() {
 
-							let canvas = document.createElement('canvas');
+								let canvas = document.createElement('canvas');
 
-							canvas.width = img.naturalWidth;
-							canvas.height = img.naturalHeight;
+								canvas.width = img.naturalWidth;
+								canvas.height = img.naturalHeight;
 
-							const ctx = canvas.getContext( '2d' );
+								const ctx = canvas.getContext( '2d' );
 
-							// Flip image vertically
+								// Flip image vertically
 
-							ctx.scale( 1, -1 );
-							ctx.drawImage( img, 0, -canvas.height );
+								ctx.scale( 1, -1 );
+								ctx.drawImage( img, 0, -canvas.height );
 
-							await new Promise( resolve => canvas.toBlob( resolve ) ).then( async function( canvas_blob ) {
+								await new Promise( resolve => canvas.toBlob( resolve ) ).then( async function( canvas_blob ) {
 
-								let reader = new FileReader();
+									let reader = new FileReader();
 
-								reader.addEventListener( 'loadend', () => {
+									reader.addEventListener( 'loadend', () => {
 
-									toZip[ `${ tex.name }.${ tex.ext }` ] = new Uint8Array( reader.result );
+										toZip[ `${ tex.name }.${ tex.ext }` ] = new Uint8Array( reader.result );
 
-									if ( processed_index === exported[ 'tex' ].length ) {
-  
-										zip_and_save( filename + '_OBJ', toZip );
-										return;
-  
-									}
-  
+										if ( processed_index === exported[ 'tex' ].length ) {
+
+											zip_and_save( filename + '_OBJ', toZip );
+											return;
+
+										}
+
+									});
+
+									reader.readAsArrayBuffer( canvas_blob );
+
 								});
 
-								reader.readAsArrayBuffer( canvas_blob );
-							
-							});
+								processed_index += 1;
 
-							processed_index += 1;
+							}
+
+							img.src = URL.createObjectURL( blob );
+							URL.revokeObjectURL( blob );
+
+						} else {
+
+							toZip[ `${ tex.name }.${ tex.ext }` ] = tex.data;
 
 						}
 
-						img.src = URL.createObjectURL( blob );
-						URL.revokeObjectURL( blob );
+					});
 
-					} else {
+				} else {
 
-						toZip[ `${ tex.name }.${ tex.ext }` ] = tex.data;
-				
-					}
+					zip_and_save( filename + '_OBJ', toZip );
 
-				});
-	
+				}
+
+			} else {
+
+				zip_and_save( filename + '_OBJ', toZip );
+
 			}
 
-			if ( editor.flip_required === false ) zip_and_save( filename + '_OBJ', toZip );
-
-		}
+		});
 
 	} );
 	options.add( option );

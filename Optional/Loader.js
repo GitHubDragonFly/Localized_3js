@@ -1138,7 +1138,7 @@ function Loader( editor ) {
 			const { MTLLoader } = await import( 'three/addons/loaders/MTLLoader.js' );
 			const { OBJLoader } = await import( 'three/addons/loaders/OBJLoader.js' );
 
-			const map_strings = [ 'bump', 'norm', 'map_d', 'map_ka', 'map_kd', 'map_ke', 'map_ks', 'map_pd', 'map_pl', 'map_pm', 'map_pr', 'map_bump', 'map_pscm', 'map_psim', 'map_pccm', 'map_pthm', 'map_ptrm', 'map_pccnm', 'map_pccrm', 'map_pshcm', 'map_pshrm' ];
+			const map_strings = [ 'bump', 'map_bump', 'disp', 'map_disp', 'norm', 'map_kn', 'map_d', 'map_ka', 'map_kd', 'map_ke', 'map_emissive', 'map_ks', 'map_pa', 'map_pd', 'map_pl', 'map_pm', 'map_pr', 'map_ps', 'map_pscm', 'map_psim', 'map_pccm', 'map_pthm', 'map_ptrm', 'map_pccnm', 'map_pccrm', 'map_pshcm', 'map_pshrm' ];
 
 			let materials = new MTLLoader().parse( strFromU8( mtl_file ) );
 

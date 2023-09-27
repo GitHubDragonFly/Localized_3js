@@ -80,9 +80,10 @@ These files / folders should be placed in their corresponding folder and replace
 Customized features would be mainly Editor related:
 
 - Automatic addition of `DirectionalLight` to the new scene
-- Customized PDB, PRWM, LDRAW, USDZ and XYZ loaders
+- Customized PDB, PRWM, LDRAW and XYZ loaders
 - Unofficial BIM loader ([dotbim](https://github.com/ricaun/dotbim.three.js) based)
-- Customized USDZ exporter
+- Customized USDZ loader / exporter
+  - can approximate transmission effect
 - Localized IFC loader
 - Customized OBJ exporter:
   - it will export MTL file along with the OBJ model / textures

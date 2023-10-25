@@ -399,17 +399,17 @@ class MaterialCreator {
 
 				case 'kd':
 					// Diffuse color (color under white light) using RGB values
-					params.color = new THREE.Color().fromArray( value );
+					params.color = new Color().fromArray( value );
 					break;
 
 				case 'ks':
 					// Specular color (color when light is reflected from shiny surface) using RGB values
-					params.specular = new THREE.Color().fromArray( value );
+					params.specular = new Color().fromArray( value );
 					break;
 
 				case 'ke':
 					// Emissive using RGB values
-					params.emissive = new THREE.Color().fromArray( value );
+					params.emissive = new Color().fromArray( value );
 					break;
 
 				case 'map_ka':
@@ -497,7 +497,7 @@ class MaterialCreator {
 
 				case 'pac':
 					// Attenuation color
-					params.attenuationColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
+					params.attenuationColor = new Color().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
@@ -521,7 +521,7 @@ class MaterialCreator {
 
 				case 'pns':
 					// Normal Scale - how much the normal map affects the material
-					params.normalScale = new THREE.Vector2().fromArray( value.split( ' ' ).map( Number ) );
+					params.normalScale = new Vector2().fromArray( value.split( ' ' ).map( Number ) );
 					break;
 
 				case 'pcc':
@@ -538,7 +538,7 @@ class MaterialCreator {
 
 				case 'pcn':
 					// Clearcoat normal scale
-					params.clearcoatNormalScale = new THREE.Vector2().fromArray( value.split( ' ' ).map( Number ) );
+					params.clearcoatNormalScale = new Vector2().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
@@ -580,7 +580,7 @@ class MaterialCreator {
 
 				case 'ps':
 					// The sheen tint (color)
-					params.sheenColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
+					params.sheenColor = new Color().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
@@ -592,7 +592,7 @@ class MaterialCreator {
 
 				case 'psp':
 					// PBR material specular color
-					params.specularColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
+					params.specularColor = new Color().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
@@ -766,7 +766,7 @@ class MaterialCreator {
 		if ( use_phong === true ) {
 
 			if ( refraction_present === true ) params.refractionRatio = refraction_value;
-			this.materials[ materialName ] = new THREE.MeshPhongMaterial( params );
+			this.materials[ materialName ] = new MeshPhongMaterial( params );
 
 		} else {
 
@@ -801,7 +801,7 @@ class MaterialCreator {
 
 			}
 
-			this.materials[ materialName ] = new THREE.MeshPhysicalMaterial( params );
+			this.materials[ materialName ] = new MeshPhysicalMaterial( params );
 
 		}
 

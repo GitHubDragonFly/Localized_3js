@@ -128,7 +128,7 @@ class MTLLoader extends Loader {
 
 			} else {
 
-				if ( key === 'ka' || key === 'kd' || key === 'ks' || key === 'ke' || key === 'ps' || key === 'pac' || key === 'pbr_psc' ) {
+				if ( key === 'ka' || key === 'kd' || key === 'ks' || key === 'ke' ) {
 
 					const ss = value.split( delimiter_pattern, 3 );
 					info[ key ] = [ parseFloat( ss[ 0 ] ), parseFloat( ss[ 1 ] ), parseFloat( ss[ 2 ] ) ];
@@ -236,10 +236,8 @@ class MaterialCreator {
 
 					case 'kd':
 					case 'ka':
+					case 'ke':
 					case 'ks':
-					case 'ps':
-					case 'pac':
-					case 'pbr_psc':
 
 						// Diffuse color (color under white light) using RGB values
 
@@ -378,6 +376,9 @@ class MaterialCreator {
 		}
 
 		let use_phong = true;
+		let refraction_present = false;
+		let refraction_value;
+		let iridescenceThicknessRange = [ 100, 400 ];
 
 		for ( const prop in mat ) {
 
@@ -398,17 +399,17 @@ class MaterialCreator {
 
 				case 'kd':
 					// Diffuse color (color under white light) using RGB values
-					params.color = new Color().fromArray( value );
+					params.color = new THREE.Color().fromArray( value );
 					break;
 
 				case 'ks':
 					// Specular color (color when light is reflected from shiny surface) using RGB values
-					params.specular = new Color().fromArray( value );
+					params.specular = new THREE.Color().fromArray( value );
 					break;
-	
+
 				case 'ke':
 					// Emissive using RGB values
-					params.emissive = new Color().fromArray( value );
+					params.emissive = new THREE.Color().fromArray( value );
 					break;
 
 				case 'map_ka':
@@ -455,9 +456,37 @@ class MaterialCreator {
 					setMapForType( 'displacementMap', value, lprop );
 					break;
 
+				case 'disp_b':
+					// Displacement bias
+					params.displacementBias = parseFloat( value );
+					break;
+
+				case 'disp_s':
+					// Displacement scale
+					params.displacementScale = parseFloat( value );
+					break;
+
 				case 'pli':
 					// Lightmap intensity
 					params.lightMapIntensity = parseFloat( value );
+					break;
+
+				case 'pa':
+					// Anisotropy
+					params.anisotropy = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'pas':
+					// Anisotropy Strength
+					params.anisotropyStrength = parseFloat( value );
+					use_phong = false;
+					break;
+
+				case 'par':
+					// Anisotropy Rotation
+					params.anisotropyRotation = parseFloat( value );
+					use_phong = false;
 					break;
 
 				case 'pad':
@@ -468,7 +497,13 @@ class MaterialCreator {
 
 				case 'pac':
 					// Attenuation color
-					params.attenuationColor = new Color().fromArray( value );
+					params.attenuationColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
+					use_phong = false;
+					break;
+
+				case 'pe':
+					// Emissive Intensity (strength)
+					params.emissiveIntensity = parseFloat( value );
 					use_phong = false;
 					break;
 
@@ -486,18 +521,7 @@ class MaterialCreator {
 
 				case 'pns':
 					// Normal Scale - how much the normal map affects the material
-					params.normalScale = new Vector2().fromArray( value );
-					use_phong = false;
-					break;
-
-				case 'disp_b':
-					// Displacement bias
-					params.displacementBias = parseFloat( value );
-					break;
-
-				case 'disp_s':
-					// Displacement scale
-					params.displacementScale = parseFloat( value );
+					params.normalScale = new THREE.Vector2().fromArray( value.split( ' ' ).map( Number ) );
 					break;
 
 				case 'pcc':
@@ -512,40 +536,40 @@ class MaterialCreator {
 					use_phong = false;
 					break;
 
-				case 'pbr_pcns':
+				case 'pcn':
 					// Clearcoat normal scale
-					params.clearcoatNormalScale = new Vector2().fromArray( value );
+					params.clearcoatNormalScale = new THREE.Vector2().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
 				case 'ni':
 					// Index-of-refraction for non-metallic materials
-					params.ior = parseFloat( value );
-					use_phong = false;
+					refraction_present = true;
+					refraction_value = parseFloat( value );
 					break;
 
-				case 'pbr_pir':
+				case 'pi':
 					// Iridescence
 					params.iridescence = parseFloat( value );
 					use_phong = false;
 					break;
 
-				case 'pbr_pirior':
+				case 'pii':
 					// Iridescence index-of-refraction
 					params.iridescenceIOR = parseFloat( value );
 					use_phong = false;
 					break;
 
-				case 'pbr_pirthr':
-					// Iridescence thickness range
-					const values = value.split( ' ' );
-					params.iridescenceThicknessRange = new Uint32Array( values );
+				case 'pitx':
+					// Iridescence thickness range x value
+					iridescenceThicknessRange[ 0 ] = parseFloat( value );
 					use_phong = false;
 					break;
 
-				case 'pbr_refl':
-					// Reflectivity
-					params.reflectivity = parseFloat( value );
+				case 'pity':
+					// Iridescence thickness range y value
+					iridescenceThicknessRange[ 1 ] = parseFloat( value );
+					use_phong = false;
 					break;
 
 				case 'pbr_ps':
@@ -556,7 +580,7 @@ class MaterialCreator {
 
 				case 'ps':
 					// The sheen tint (color)
-					params.sheenColor = new Color().fromArray( value );
+					params.sheenColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
@@ -566,13 +590,13 @@ class MaterialCreator {
 					use_phong = false;
 					break;
 
-				case 'pbr_psc':
+				case 'psp':
 					// PBR material specular color
-					params.specularColor = new Color().fromArray( value );
+					params.specularColor = new THREE.Color().fromArray( value.split( ' ' ).map( Number ) );
 					use_phong = false;
 					break;
 
-				case 'pbr_psi':
+				case 'psi':
 					// PBR material specular intensity
 					params.specularIntensity = parseFloat( value );
 					use_phong = false;
@@ -590,15 +614,30 @@ class MaterialCreator {
 					use_phong = false;
 					break;
 
-				case 'pbr_alpha':
-					// PBR material alphaTest
-					params.alphaTest = parseFloat( value );
-					use_phong = false;
+				case 's':
+					// Material side
+					params.side = parseInt( value );
 					break;
 
-				case 'pl_map':
+				case 'a':
+					// Material alphaTest
+					params.alphaTest = parseFloat( value );
+					break;
+
+				case 'prf':
+					// Reflectivity
+					params.reflectivity = parseFloat( value );
+					break;
+
+				case 'pbr_pl_map':
 					// Light map
 					setMapForType( 'lightMap', value, lprop );
+					break;
+
+				case 'map_pa':
+					// Anisotropy map
+					setMapForType( 'anisotropyMap', value, lprop );
+					use_phong = false;
 					break;
 
 				case 'map_pm':
@@ -638,15 +677,15 @@ class MaterialCreator {
 					use_phong = false;
 					break;
 
-				case 'pbr_pir_map':
-					// Iridescence map
-					setMapForType( 'iridescenceMap', value, lprop );
+				case 'map_pit':
+					// Iridescence thickness map
+					setMapForType( 'iridescenceThicknessMap', value, lprop );
 					use_phong = false;
 					break;
 
-				case 'pbr_pirth_map':
-					// Iridescence thickness map
-					setMapForType( 'iridescenceThicknessMap', value, lprop );
+				case 'map_pi':
+					// Iridescence map
+					setMapForType( 'iridescenceMap', value, lprop );
 					use_phong = false;
 					break;
 
@@ -662,26 +701,26 @@ class MaterialCreator {
 					use_phong = false;
 					break;
 
-				case 'pbr_psc_map':
+				case 'map_psp':
 					// PBR specular color map
 					setMapForType( 'specularColorMap', value, lprop );
 					use_phong = false;
 					break;
 
-				case 'pbr_psi_map':
+				case 'map_psi':
 					// PBR specular intensity map
 					setMapForType( 'specularIntensityMap', value, lprop );
 					use_phong = false;
 					break;
 
 				case 'map_pth':
-					// Thickness map
+					// PBR thickness map
 					setMapForType( 'thicknessMap', value, lprop );
 					use_phong = false;
 					break;
 
 				case 'map_ptr':
-					// Transmission map
+					// PBR transmission map
 					setMapForType( 'transmissionMap', value, lprop );
 					use_phong = false;
 					break;
@@ -726,33 +765,43 @@ class MaterialCreator {
 
 		if ( use_phong === true ) {
 
-			this.materials[ materialName ] = new MeshPhongMaterial( params );
+			if ( refraction_present === true ) params.refractionRatio = refraction_value;
+			this.materials[ materialName ] = new THREE.MeshPhongMaterial( params );
 
 		} else {
 
+			if ( refraction_present === true ) params.ior = refraction_value;
+			if ( params.iridescence ) params.iridescenceThicknessRange = iridescenceThicknessRange;
+
+			// Check params to allow correct transmission effect
+
 			if ( params.transmission && params.transmission > 0 ) {
 
-				if ( params.metalnessMap && params.metalness === undefined ) {
+				if ( params.metalnessMap !== undefined && params.metalness === undefined ) {
 
 					params.metalness = 0.01;
 
 				}
 
-				if ( params.roughnessMap && params.roughness === undefined ) {
+				if ( params.roughnessMap !== undefined && params.roughness === undefined ) {
 
 					params.roughness = 0.01;
 
 				}
 
-				if ( ! params.metalnessMap && ! params.roughnessMap && params.metalness === undefined && params.roughness === undefined ) {
+				if ( params.metalnessMap === undefined && params.roughnessMap === undefined ) {
 
-					params.roughness = 0.01;
+					if ( params.metalness === undefined && ( params.roughness === undefined || params.roughness === 1.0 ) ) {
+
+						params.roughness = 0.01;
+
+					}
 
 				}
 
 			}
 
-			this.materials[ materialName ] = new MeshPhysicalMaterial( params );
+			this.materials[ materialName ] = new THREE.MeshPhysicalMaterial( params );
 
 		}
 

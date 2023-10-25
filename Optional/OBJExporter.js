@@ -21,6 +21,7 @@ class OBJExporter {
 		let materials = {};
 		let material_names = [];
 		let material_colors = {};
+		let vertexTangents = false;
 		const vertex = new Vector3();
 		const color = new Color();
 		const normal = new Vector3();
@@ -43,6 +44,7 @@ class OBJExporter {
 			}
 
 			// shortcuts
+			vertexTangents = geometry.attributes.tangent !== undefined;
 			const groups = geometry.groups;
 			const vertex_colors = geometry.getAttribute( 'color' );
 			const vertices = geometry.getAttribute( 'position' );
@@ -462,6 +464,7 @@ class OBJExporter {
 			output = 'mtllib ' + filename + '.mtl' + '\n' + output;
 
 			let mtlOutput = '# MTL file - created by a modified three.js OBJExporter' + '\n';
+			let map_Px_set;
 			let map_uuids = [];
 			let map_names = {};
 			let textures = [];
@@ -477,12 +480,14 @@ class OBJExporter {
 
 					materials[ key ].forEach( ( mtl ) => {
 
+						map_Px_set = false;
 						set_mtl_params_textures( mtl );
 
 					});
 
 				} else {
 
+					map_Px_set = false;
 					set_mtl_params_textures( materials[ key ] );
 
 				}
@@ -507,50 +512,68 @@ class OBJExporter {
 
 					mtlOutput += 'Tr ' + transparency + '\n';
 					mtlOutput += 'Tf 1.0000 1.0000 1.0000\n'; // this property is not used by the three.js MTL Loader
-					mtlOutput += 'illum 2\n'; // this property is not used by the three.js MTL Loader
+					mtlOutput += 'illum 1\n'; // this property is not used by the three.js MTL Loader
 
 					if ( mat.aoMapIntensity && mat.aoMapIntensity > 0 ) mtlOutput += 'Ka ' + mat.aoMapIntensity + ' ' + mat.aoMapIntensity + ' ' + mat.aoMapIntensity + '\n';
 					if ( mat.color ) mtlOutput += 'Kd ' + mat.color.r + ' ' + mat.color.g + ' ' + mat.color.b + '\n';
 					if ( mat.emissive ) mtlOutput += 'Ke ' + mat.emissive.r + ' ' + mat.emissive.g + ' ' + mat.emissive.b + '\n';
 					if ( mat.specular ) mtlOutput += 'Ks ' + mat.specular.r + ' ' + mat.specular.g + ' ' + mat.specular.b + '\n';
-					if ( mat.shininess ) mtlOutput += 'Ns ' + mat.shininess + '\n';
-					if ( mat.metalness ) mtlOutput += 'Pm ' + mat.metalness + '\n';
-					if ( mat.roughness ) mtlOutput += 'Pr ' + mat.roughness + '\n';
-					if ( mat.ior && mat.ior > 0 ) mtlOutput += 'Ni ' + mat.ior + '\n';
-					if ( mat.normalScale && ! mat.sheen ) mtlOutput += 'Pns ' + mat.normalScale.x + ' ' + mat.normalScale.y + '\n';
+					if ( mat.shininess !== undefined && mat.shininess > 0 ) mtlOutput += 'Ns ' + mat.shininess + '\n';
+					if ( mat.metalness !== undefined && mat.metalness >= 0 ) mtlOutput += 'Pm ' + mat.metalness + '\n';
+					if ( mat.roughness !== undefined && mat.roughness >= 0 ) mtlOutput += 'Pr ' + mat.roughness + '\n';
+					if ( mat.ior !== undefined && mat.ior >= 1 && mat.ior !== 1.5 ) {
+						mtlOutput += 'Ni ' + mat.ior + '\n';
+					} else if ( mat.refractionRatio !== undefined && mat.refractionRatio <= 1 && mat.refractionRatio !== 0.98) {
+						mtlOutput += 'Ni ' + mat.refractionRatio + '\n';
+					}
+					if ( ( mat.normalScale && ! ( mat.normalScale.x === 1 && mat.normalScale.y === 1 ) && ! mat.sheen ) || vertexTangents === true ) {
+						mtlOutput += 'Pns ' + mat.normalScale.x + ' ' + ( vertexTangents === true ? mat.normalScale.y *= -1 : mat.normalScale.y ) + '\n';
+					}
 					if ( mat.displacementMap ) {
-						if ( mat.displacementBias ) mtlOutput += 'disp_b ' + mat.displacementBias + '\n';
-						if ( mat.displacementScale ) mtlOutput += 'disp_s ' + mat.displacementScale + '\n';
+						if ( mat.displacementBias && mat.displacementBias > 0 ) mtlOutput += 'disp_b ' + mat.displacementBias + '\n';
+						if ( mat.displacementScale && mat.displacementScale < 1 ) mtlOutput += 'disp_s ' + mat.displacementScale + '\n';
 					}
 					if ( mat.clearcoat && mat.clearcoat > 0 ) {
 						mtlOutput += 'Pcc ' + mat.clearcoat + '\n';
 						if ( mat.clearcoatRoughness ) mtlOutput += 'Pcr ' + mat.clearcoatRoughness + '\n';
-						if ( mat.clearcoatNormalScale ) mtlOutput += 'Pbr_pcns ' + mat.clearcoatNormalScale.x + ' ' + mat.clearcoatNormalScale.y + '\n';
+						if ( ( mat.clearcoatNormalScale && ! ( mat.clearcoatNormalScale.x === 1 && mat.clearcoatNormalScale.y === 1 ) ) || vertexTangents === true ) {
+							mtlOutput += 'Pcn ' + mat.clearcoatNormalScale.x + ' ' + ( vertexTangents === true ? mat.clearcoatNormalScale.y *= -1 : mat.clearcoatNormalScale.y ) + '\n';
+						}
 					}
-					if ( mat.lightMapIntensity ) mtlOutput += 'Pli ' + mat.lightMapIntensity + '\n';
-					if ( mat.reflectivity ) mtlOutput += 'Pbr_refl ' + mat.reflectivity + '\n';
-					if ( mat.attenuationColor && mat.attenuationDistance && mat.attenuationDistance !== Infinity ) {
+					if ( mat.lightMapIntensity && mat.lightMapIntensity !== 1 ) mtlOutput += 'Pli ' + mat.lightMapIntensity + '\n';
+					if ( mat.emissiveIntensity && mat.emissiveIntensity !== 1 ) mtlOutput += 'Pe ' + mat.emissiveIntensity + '\n';
+					if ( mat.anisotropy ) {
+						mtlOutput += 'Pa ' + mat.anisotropy + '\n';
+						mtlOutput += 'Pas ' + mat.anisotropyStrength + '\n';
+						mtlOutput += 'Par ' + mat.anisotropyRotation + '\n';
+					}
+					if ( mat.attenuationDistance && mat.attenuationDistance !== Infinity ) {
 						mtlOutput += 'Pac ' + mat.attenuationColor.r + ' ' + mat.attenuationColor.g + ' ' + mat.attenuationColor.b + '\n';
 						mtlOutput += 'Pad ' + mat.attenuationDistance + '\n';
 					}
 					if ( mat.iridescence && mat.iridescence > 0 ) {
-						mtlOutput += 'Pbr_pir ' + mat.iridescence + '\n';
-						if ( mat.iridescenceIOR ) mtlOutput += 'Pbr_pirior ' + mat.iridescenceIOR + '\n';
-						if ( mat.iridescenceThicknessRange ) mtlOutput += 'Pbr_pirthr ' + mat.iridescenceThicknessRange[ 0 ] + ' ' + mat.iridescenceThicknessRange[ 1 ] + '\n';
+						mtlOutput += 'Pi ' + mat.iridescence + '\n';
+						if ( mat.iridescenceIOR && mat.iridescenceIOR >= 1 ) mtlOutput += 'Pii ' + Math.min( 2.333, mat.iridescenceIOR ) + '\n';
+						if ( mat.iridescenceThicknessRange ) {
+							mtlOutput += 'Pitx ' + mat.iridescenceThicknessRange[ 0 ] + '\n';
+							mtlOutput += 'Pity ' + mat.iridescenceThicknessRange[ 1 ] + '\n';
+						}
 					}
 					if ( mat.sheen && mat.sheen > 0 ) {
 						mtlOutput += 'Pbr_ps ' + mat.sheen + '\n';
 						if ( mat.sheenColor ) mtlOutput += 'Ps ' + mat.sheenColor.r + ' ' + mat.sheenColor.g + ' ' + mat.sheenColor.b + '\n';
 						if ( mat.sheenRoughness ) mtlOutput += 'Psr ' + mat.sheenRoughness + '\n';
 					}
-					if ( mat.specularColor && mat.specularColor.getHex() > 0 ) {
-						mtlOutput += 'Pbr_psc ' + mat.specularColor.r + ' ' + mat.specularColor.g + ' ' + mat.specularColor.b + '\n';
-						if ( mat.specularIntensity ) mtlOutput += 'Pbr_psi ' + mat.specularIntensity + '\n';
+					if ( mat.specularColor || mat.specularIntensity || mat.specularColorMap || mat.specularIntensityMap ) {
+						if ( mat.specularColor ) mtlOutput += 'Psp ' + mat.specularColor.r + ' ' + mat.specularColor.g + ' ' + mat.specularColor.b + '\n';
+						if ( mat.specularIntensity ) mtlOutput += 'Psi ' + mat.specularIntensity + '\n';
 					}
 					if ( mat.thickness && mat.thickness > 0 ) mtlOutput += 'Pth ' + mat.thickness + '\n';
 					if ( mat.transmission && mat.transmission > 0 ) mtlOutput += 'Ptr ' + mat.transmission + '\n';
 
-					if ( mat.alphaTest > 0 ) mtlOutput += 'Pbr_alpha ' + mat.alphaTest + '\n';
+					if ( mat.reflectivity !== undefined && mat.reflectivity > 0 ) mtlOutput += 'Prf ' + mat.reflectivity + '\n';
+					if ( mat.alphaTest > 0 ) mtlOutput += 'a ' + mat.alphaTest + '\n';
+					mtlOutput += 's ' + mat.side + '\n';
 
 					if ( mat.map && mat.map.type === 1009 && mat.map.image ) {
 
@@ -611,7 +634,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.specularMap.uuid ) === false ) {
 
-								name = 'specularMap' + count;
+								name = 'specMap' + count;
 
 								map_uuids.push( mat.specularMap.uuid );
 								map_names[ mat.specularMap.uuid ] = name;
@@ -653,7 +676,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.emissiveMap.uuid ) === false ) {
 
-								name = 'emissiveMap' + count;
+								name = 'emMap' + count;
 
 								map_uuids.push( mat.emissiveMap.uuid );
 								map_names[ mat.emissiveMap.uuid ] = name;
@@ -695,7 +718,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.bumpMap.uuid ) === false ) {
 
-								name = 'bumpMap' + count;
+								name = 'bmMap' + count;
 
 								map_uuids.push( mat.bumpMap.uuid );
 								map_names[ mat.bumpMap.uuid ] = name;
@@ -753,7 +776,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.lightMap.uuid ) === false ) {
 
-								name = 'lightMap' + count;
+								name = 'ltMap' + count;
 
 								map_uuids.push( mat.lightMap.uuid );
 								map_names[ mat.lightMap.uuid ] = name;
@@ -764,11 +787,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'Pl_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'Pbr_pl_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'Pl_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.lightMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'Pbr_pl_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.lightMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -797,7 +820,7 @@ class OBJExporter {
 
 								if ( map_uuids.includes( mat.metalnessMap.uuid ) === false ) {
 
-									name = 'metalnessMap' + count;
+									name = 'metalMap' + count;
 
 									map_uuids.push( mat.metalnessMap.uuid );
 									map_names[ mat.metalnessMap.uuid ] = name;
@@ -861,7 +884,7 @@ class OBJExporter {
 
 								if ( map_uuids.includes( mat.roughnessMap.uuid ) === false ) {
 
-									name = 'roughnessMap' + count;
+									name = 'roughMap' + count;
 
 									map_uuids.push( mat.roughnessMap.uuid );
 									map_names[ mat.roughnessMap.uuid ] = name;
@@ -923,7 +946,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.displacementMap.uuid ) === false ) {
 
-								name = 'displacementMap' + count;
+								name = 'displaceMap' + count;
 
 								map_uuids.push( mat.displacementMap.uuid );
 								map_names[ mat.displacementMap.uuid ] = name;
@@ -934,11 +957,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'map_disp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'disp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'map_disp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.displacementMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'disp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.displacementMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -965,7 +988,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.normalMap.uuid ) === false ) {
 
-								name = 'normalMap' + count;
+								name = 'norMap' + count;
 
 								map_uuids.push( mat.normalMap.uuid );
 								map_names[ mat.normalMap.uuid ] = name;
@@ -1007,7 +1030,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.alphaMap.uuid ) === false ) {
 
-								name = 'alphaMap' + count;
+								name = 'alpMap' + count;
 
 								map_uuids.push( mat.alphaMap.uuid );
 								map_names[ mat.alphaMap.uuid ] = name;
@@ -1049,7 +1072,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.aoMap.uuid ) === false ) {
 
-								name = 'ambientMap' + count;
+								name = 'ambMap' + count;
 
 								map_uuids.push( mat.aoMap.uuid );
 								map_names[ mat.aoMap.uuid ] = name;
@@ -1065,6 +1088,48 @@ class OBJExporter {
 							} else {
 
 								mtlOutput += 'map_Ka -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.aoMap.uuid ] + '.png' + '\n';
+
+							}
+
+						}
+
+					}
+
+					if ( mat.anisotropyMap && mat.anisotropyMap.type === 1009 && mat.anisotropyMap.image ) {
+
+						let map_to_process = mat.anisotropyMap;
+
+						if ( map_to_process.isCompressedTexture === true ) {
+
+							map_to_process = decompress( mat.anisotropyMap, 1024 );
+
+						}
+
+						if ( mat.anisotropyMap.isCompressedTexture === true || map_to_process.image.src || map_to_process.image.data || map_to_process.image instanceof ImageBitmap ) {
+
+							const xs = mat.anisotropyMap.repeat.x;
+							const ys = mat.anisotropyMap.repeat.y;
+							const xo = mat.anisotropyMap.offset.x;
+							const yo = mat.anisotropyMap.offset.y;
+
+							if ( map_uuids.includes( mat.anisotropyMap.uuid ) === false ) {
+
+								name = 'anisMap' + count;
+
+								map_uuids.push( mat.anisotropyMap.uuid );
+								map_names[ mat.anisotropyMap.uuid ] = name;
+
+								textures.push( {
+									name,
+									ext,
+									data: imageToData( map_to_process.image, ext )
+								});
+
+								mtlOutput += 'map_Pa -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+
+							} else {
+
+								mtlOutput += 'map_Pa -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.anisotropyMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -1091,7 +1156,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.clearcoatMap.uuid ) === false ) {
 
-								name = 'clearcoatMap' + count;
+								name = 'ccMap' + count;
 
 								map_uuids.push( mat.clearcoatMap.uuid );
 								map_names[ mat.clearcoatMap.uuid ] = name;
@@ -1133,7 +1198,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.clearcoatNormalMap.uuid ) === false ) {
 
-								name = 'clearcoatNormalMap' + count;
+								name = 'ccnMap' + count;
 
 								map_uuids.push( mat.clearcoatNormalMap.uuid );
 								map_names[ mat.clearcoatNormalMap.uuid ] = name;
@@ -1175,7 +1240,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.clearcoatRoughnessMap.uuid ) === false ) {
 
-								name = 'clearcoatRoughnessMap' + count;
+								name = 'ccrMap' + count;
 
 								map_uuids.push( mat.clearcoatRoughnessMap.uuid );
 								map_names[ mat.clearcoatRoughnessMap.uuid ] = name;
@@ -1217,7 +1282,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.iridescenceMap.uuid ) === false ) {
 
-								name = 'iridescenceMap' + count;
+								name = 'irMap' + count;
 
 								map_uuids.push( mat.iridescenceMap.uuid );
 								map_names[ mat.iridescenceMap.uuid ] = name;
@@ -1228,11 +1293,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'Pbr_pir_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'map_Pi -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'Pbr_pir_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.iridescenceMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'map_Pi -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.iridescenceMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -1259,7 +1324,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.iridescenceThicknessMap.uuid ) === false ) {
 
-								name = 'iridescenceThicknessMap' + count;
+								name = 'irthMap' + count;
 
 								map_uuids.push( mat.iridescenceThicknessMap.uuid );
 								map_names[ mat.iridescenceThicknessMap.uuid ] = name;
@@ -1270,11 +1335,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'Pbr_pirth_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'map_Pit -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'Pbr_pirth_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.iridescenceThicknessMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'map_Pit -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.iridescenceThicknessMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -1301,7 +1366,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.sheenColorMap.uuid ) === false ) {
 
-								name = 'sheenColorMap' + count;
+								name = 'shcMap' + count;
 
 								map_uuids.push( mat.sheenColorMap.uuid );
 								map_names[ mat.sheenColorMap.uuid ] = name;
@@ -1343,7 +1408,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.sheenRoughnessMap.uuid ) === false ) {
 
-								name = 'sheenRoughnessMap' + count;
+								name = 'shrMap' + count;
 
 								map_uuids.push( mat.sheenRoughnessMap.uuid );
 								map_names[ mat.sheenRoughnessMap.uuid ] = name;
@@ -1385,7 +1450,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.specularIntensityMap.uuid ) === false ) {
 
-								name = 'specularIntensityMap' + count;
+								name = 'spiMap' + count;
 
 								map_uuids.push( mat.specularIntensityMap.uuid );
 								map_names[ mat.specularIntensityMap.uuid ] = name;
@@ -1396,11 +1461,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'Pbr_psi_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'map_Psi -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'Pbr_psi_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.specularIntensityMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'map_Psi -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.specularIntensityMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -1427,7 +1492,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.specularColorMap.uuid ) === false ) {
 
-								name = 'specularColorMap' + count;
+								name = 'spcMap' + count;
 
 								map_uuids.push( mat.specularColorMap.uuid );
 								map_names[ mat.specularColorMap.uuid ] = name;
@@ -1438,11 +1503,11 @@ class OBJExporter {
 									data: imageToData( map_to_process.image, ext )
 								});
 
-								mtlOutput += 'Pbr_psc_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
+								mtlOutput += 'map_Psp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + name + '.png' + '\n';
 
 							} else {
 
-								mtlOutput += 'Pbr_psc_map -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.specularColorMap.uuid ] + '.png' + '\n';
+								mtlOutput += 'map_Psp -s ' + xs + ' ' + ys + ' 1' + ' -o ' + xo + ' ' + yo + ' 0 ' + map_names[ mat.specularColorMap.uuid ] + '.png' + '\n';
 
 							}
 
@@ -1469,7 +1534,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.thicknessMap.uuid ) === false ) {
 
-								name = 'thicknessMap' + count;
+								name = 'thMap' + count;
 
 								map_uuids.push( mat.thicknessMap.uuid );
 								map_names[ mat.thicknessMap.uuid ] = name;
@@ -1511,7 +1576,7 @@ class OBJExporter {
 
 							if ( map_uuids.includes( mat.transmissionMap.uuid ) === false ) {
 
-								name = 'transmissionMap' + count;
+								name = 'trMap' + count;
 
 								map_uuids.push( mat.transmissionMap.uuid );
 								map_names[ mat.transmissionMap.uuid ] = name;

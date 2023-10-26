@@ -2,7 +2,7 @@
 
 IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor and Examples (Docs) then here is a possible way of doing it with python.
 
-Note: this repository also provides optional customized files which can provide additional functionality currently not available in the Editor. These files should be implemented as either `all` or `none`. You could also try using only some of these files but don't get surprised if eventually something doesn't work properly.
+Note: this repository also provides optional customized files which can provide additional functionality currently not available in the Editor. These files should be implemented as either `all` or `none`. Also try using only some of these files but don't get surprised if eventually something doesn't work properly.
 
 # Requirements
 
@@ -14,7 +14,7 @@ Note: this repository also provides optional customized files which can provide 
 The simplest requirement and approach for running:
 
 - [python3](https://www.python.org/downloads/)
-  - get the `Required Repository` as stated above and unzipp it to create the `main folder`
+  - get the `Required Repository` as stated above and unzip it to create the `main folder`
   - add to the `main folder` the `index.html` file found in the `Required` folder of this repository
   - use Terminal / Command Prompt, navigate to the `main folder` and run either of the following commands:
     - `python3 -m http.server` or `python3 -m http.server 8000 --bind 127.0.0.1`
@@ -28,7 +28,7 @@ As an alternative, either of the following 2 choices below should also work:
 
 Packages are normally installed with `pip`, for example: `> pip install Flask` or `> pip install flask_cors`
 
-# Folder Structure
+# Flask Folder Structure
 
 - Required files for python / Flask run (add each file to the `main folder`):
 

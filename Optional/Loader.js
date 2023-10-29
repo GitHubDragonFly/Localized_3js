@@ -1154,6 +1154,8 @@ function Loader( editor ) {
 
 							if ( value[ map_str ] ) {
 
+								value[ map_str ].trim();
+
 								if ( value[ map_str ].indexOf( '/' ) > -1 ) {
 
 									str = value[ map_str ].substring( value[ map_str ].lastIndexOf( '/' ) + 1 );

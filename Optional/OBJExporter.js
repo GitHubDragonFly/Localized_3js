@@ -209,7 +209,7 @@ class OBJExporter {
 					normal.applyMatrix3( normalMatrixWorld ).normalize();
 
 					// transform the normal to export format
-					output += 'vn ' + normal.x + ' ' + normal.y + ' ' + normal.z + '\n';
+					output += 'vn ' + normal.x * mesh.scale.x + ' ' + normal.y * mesh.scale.y + ' ' + normal.z * mesh.scale.z + '\n';
 
 				}
 
@@ -281,6 +281,18 @@ class OBJExporter {
 
 		function parseLine( line ) {
 
+			// name of the line object
+			if ( line.name === '' ) {
+
+				line[ 'name' ] = 'line_' + line_count;
+
+			} else {
+
+				line.name = line.name.replaceAll( '#', '' );
+				line.name = line.name.replaceAll( ' ', '_' );
+
+			}
+
 			let nbVertex = 0;
 			const geometry = line.geometry;
 			const type = line.type;
@@ -299,19 +311,57 @@ class OBJExporter {
 
 			if ( line.material ) {
 
-				if ( line.material.name ) {
+				if ( Array.isArray( line.material ) ) {
 
-					if ( line.material.name === '' ) line.material.name = 'line_material_' + line_count;
+					line.material.forEach( mtl => {
+
+						if ( mtl.name ) {
+
+							if ( mtl.name === '' ) {
+
+								mtl.name = 'line_material_' + line_count;
+
+							} else {
+
+								mtl.name = mtl.name.replaceAll( '#', '' );
+								mtl.name = mtl.name.replaceAll( ' ', '_' );
+
+							}
+
+						} else {
+
+							mtl[ 'name' ] = 'line_material_' + line_count;
+
+						}
+
+						output += 'usemtl ' + mtl.name + '\n';
+
+					});
 
 				} else {
 
-					line.material[ 'name' ] = 'line_material_' + line_count;
+					if ( line.material.name ) {
+
+						if ( line.material.name === '' ) {
+
+							line.material.name = 'line_material_' + line_count;
+
+						} else {
+
+							line.material.name = line.material.name.replaceAll( '#', '' );
+							line.material.name = line.material.name.replaceAll( ' ', '_' );
+
+						}
+
+					} else {
+
+						line.material[ 'name' ] = 'line_material_' + line_count;
+
+					}
+
+					output += 'usemtl ' + line.material.name + '\n';
 
 				}
-
-				materials[ line.material.name ] = line.material;
-
-				output += 'usemtl ' + line.material.name + '\n';
 
 				line_count += 1;
 
@@ -366,6 +416,18 @@ class OBJExporter {
 
 		function parsePoints( points ) {
 
+			// name of the points object
+			if ( points.name === '' ) {
+
+				points[ 'name' ] = 'points_' + points_count;
+
+			} else {
+
+				points.name = points.name.replaceAll( '#', '' );
+				points.name = points.name.replaceAll( ' ', '_' );
+
+			}
+
 			let nbVertex = 0;
 			const geometry = points.geometry;
 
@@ -417,7 +479,16 @@ class OBJExporter {
 
 				if ( points.material.name ) {
 
-					if ( points.material.name === '' ) points.material.name = 'points_material_' + points_count;
+					if ( points.material.name === '' ) {
+
+						points.material.name = 'points_material_' + points_count;
+
+					} else {
+
+						points.material.name = points.material.name.replaceAll( '#', '' );
+						points.material.name = points.material.name.replaceAll( ' ', '_' );
+
+					}
 
 				} else {
 
@@ -430,7 +501,6 @@ class OBJExporter {
 				output += 'usemtl ' + points.material.name + '\n';
 
 				points_count += 1;
-
 			}
 
 		}
@@ -443,7 +513,7 @@ class OBJExporter {
 
 			}
 
-			if ( child.isLine === true ) {
+			if ( child.isLine === true || child.isLineSegments === true ) {
 
 				parseLine( child );
 
@@ -544,8 +614,7 @@ class OBJExporter {
 					if ( mat.emissiveIntensity && mat.emissiveIntensity !== 1 ) mtlOutput += 'Pe ' + mat.emissiveIntensity + '\n';
 					if ( mat.anisotropy ) {
 						mtlOutput += 'Pa ' + mat.anisotropy + '\n';
-						mtlOutput += 'Pas ' + mat.anisotropyStrength + '\n';
-						mtlOutput += 'Par ' + mat.anisotropyRotation + '\n';
+						if ( mat.anisotropyRotation && mat.anisotropyRotation !== 0 ) mtlOutput += 'Par ' + mat.anisotropyRotation + '\n';
 					}
 					if ( mat.attenuationDistance && mat.attenuationDistance !== Infinity ) {
 						mtlOutput += 'Pac ' + mat.attenuationColor.r + ' ' + mat.attenuationColor.g + ' ' + mat.attenuationColor.b + '\n';

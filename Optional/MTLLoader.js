@@ -472,14 +472,8 @@ class MaterialCreator {
 					break;
 
 				case 'pa':
-					// Anisotropy
+					// Anisotropy strength or factor
 					params.anisotropy = parseFloat( value );
-					use_phong = false;
-					break;
-
-				case 'pas':
-					// Anisotropy Strength
-					params.anisotropyStrength = parseFloat( value );
 					use_phong = false;
 					break;
 

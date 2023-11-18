@@ -422,6 +422,10 @@ class ColladaExporter {
 
 					type = 'lambert';
 
+				} else if ( m.isPointsMaterial === true ) {
+
+					type = 'points';
+
 				} else if ( m.isMeshBasicMaterial === true ) {
 
 					type = 'constant';
@@ -602,7 +606,7 @@ class ColladaExporter {
 
 			node += getTransform( o );
 
-			if ( o.isMesh === true && o.geometry !== null ) {
+			if ( ( o.isMesh === true || o.isPoints === true ) && o.geometry !== null ) {
 
 				// function returns the id associated with the mesh and a "BufferGeometry" version
 				// of the geometry in case it's not a geometry.

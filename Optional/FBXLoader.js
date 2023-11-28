@@ -428,6 +428,12 @@ class FBXTreeParser {
 
 		}
 
+		if ( fileName.indexOf( ':' ) !== -1 && fileName.indexOf( '/' ) !== -1 ) {
+
+			fileName = fileName.substring( fileName.lastIndexOf( '/' ) + 1 );
+
+		}
+
 		let texture;
 
 		const extension = textureNode.FileName.slice( - 3 ).toLowerCase();

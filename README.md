@@ -2,7 +2,9 @@
 
 IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor and Examples (Docs) then here is a possible way of doing it with python.
 
-Note: this repository also provides optional customized files which can provide additional functionality currently not available in the Editor. These files should be implemented as either `all` or `none`. Also try using only some of these files. Don't get surprised if eventually something doesn't work properly since three.js might implement in the future some features that are currently not available in these optional files - this was tested as working with r158 (even r159dev).
+Note: this repository also provides optional customized files which can provide additional functionality currently not available in the Editor. These files should be implemented as either `all` or `none`. Also try using only some of these files but don't get surprised if eventually something doesn't work properly.
+
+Maybe conside learning how to modify these files yourself since three.js might implement some features in the future that would not be available in current optional files - this was tested as working with r158 (even r159dev).
 
 # Requirements
 

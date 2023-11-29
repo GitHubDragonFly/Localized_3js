@@ -98,6 +98,7 @@ Customized features would be mainly Editor related:
 - Added support for loading `3DS + textures` zipped files
 - Added support for loading `FBX + textures` zipped files
 - Added support for loading `OBJ + MTL + textures` zipped files
+- Added support for loading `GLTF + BIN + textures` zipped files
 - Added support for loading `DAE (Collada) + textures` zipped files
 - modified `ui.three.js` file allows using DDS and KTX2 images as maps
 - modified `chevrotain.module.min.js` fixes the `unreachable code` warnings

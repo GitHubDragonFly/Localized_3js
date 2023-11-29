@@ -275,7 +275,9 @@ function Strings( config ) {
 			'sidebar/material/alphamap': 'Alpha Map',
 			'sidebar/material/bumpmap': 'Bump Map',
 			'sidebar/material/normalmap': 'Normal Map',
+			'sidebar/material/clearcoatmap': 'Clearcoat Map',
 			'sidebar/material/clearcoatnormalmap': 'Clearcoat Normal Map',
+			'sidebar/material/clearcoatroughnessmap': 'Clearcoat Roughness Map',
 			'sidebar/material/displacementmap': 'Displace Map',
 			'sidebar/material/roughnessmap': 'Rough. Map',
 			'sidebar/material/metalnessmap': 'Metal. Map',
@@ -317,7 +319,6 @@ function Strings( config ) {
 			'sidebar/project/renderer': 'Renderer',
 			'sidebar/project/antialias': 'Antialias',
 			'sidebar/project/shadows': 'Shadows',
-			'sidebar/project/useLegacyLights': 'Use legacy lights',
 			'sidebar/project/toneMapping': 'Tone mapping',
 			'sidebar/project/materials': 'Materials',
 			'sidebar/project/Assign': 'Assign',
@@ -337,10 +338,6 @@ function Strings( config ) {
 			'sidebar/settings/shortcuts/undo': 'Undo',
 			'sidebar/settings/shortcuts/focus': 'Focus',
 
-			'sidebar/settings/viewport': 'Viewport',
-			'sidebar/settings/viewport/grid': 'Grid',
-			'sidebar/settings/viewport/helpers': 'Helpers',
-
 			'sidebar/history': 'History',
 			'sidebar/history/persistent': 'persistent',
 
@@ -348,6 +345,9 @@ function Strings( config ) {
 			'toolbar/rotate': 'Rotate',
 			'toolbar/scale': 'Scale',
 			'toolbar/local': 'Local',
+
+			'viewport/controls/grid': 'Grid',
+			'viewport/controls/helpers': 'Helpers',
 
 			'viewport/info/objects': 'Objects',
 			'viewport/info/vertices': 'Vertices',
@@ -627,7 +627,9 @@ function Strings( config ) {
 			'sidebar/material/alphamap': 'Texture de transparence',
 			'sidebar/material/bumpmap': 'Texture de relief',
 			'sidebar/material/normalmap': 'Texture de normales',
+			'sidebar/material/clearcoat': 'Vernis',
 			'sidebar/material/clearcoatnormalmap': 'Texture des normales du vernis',
+			'sidebar/material/clearcoatroughness': 'Rugosité du vernis',
 			'sidebar/material/displacementmap': 'Texture de déplacement',
 			'sidebar/material/roughnessmap': 'Texture de rugosité',
 			'sidebar/material/metalnessmap': 'Texture métallique',
@@ -669,7 +671,6 @@ function Strings( config ) {
 			'sidebar/project/renderer': 'Rendus',
 			'sidebar/project/antialias': 'Anticrénelage',
 			'sidebar/project/shadows': 'Ombres',
-			'sidebar/project/useLegacyLights': 'Use legacy lights',
 			'sidebar/project/toneMapping': 'Mappage des nuances',
 			'sidebar/project/materials': 'Matériaux',
 			'sidebar/project/Assign': 'Attribuer',
@@ -689,10 +690,6 @@ function Strings( config ) {
 			'sidebar/settings/shortcuts/undo': 'Annuler',
 			'sidebar/settings/shortcuts/focus': 'Focus',
 
-			'sidebar/settings/viewport': 'Viewport',
-			'sidebar/settings/viewport/grid': 'Grille',
-			'sidebar/settings/viewport/helpers': 'Helpers',
-
 			'sidebar/history': 'Historique',
 			'sidebar/history/persistent': 'permanent',
 
@@ -700,6 +697,9 @@ function Strings( config ) {
 			'toolbar/rotate': 'Rotation',
 			'toolbar/scale': 'Échelle',
 			'toolbar/local': 'Local',
+
+			'viewport/controls/grid': 'Grille',
+			'viewport/controls/helpers': 'Helpers',
 
 			'viewport/info/objects': 'Objets',
 			'viewport/info/vertices': 'Sommets',
@@ -1021,7 +1021,6 @@ function Strings( config ) {
 			'sidebar/project/renderer': '渲染器',
 			'sidebar/project/antialias': '抗锯齿',
 			'sidebar/project/shadows': '阴影',
-			'sidebar/project/useLegacyLights': '传统灯',
 			'sidebar/project/toneMapping': '色调映射',
 			'sidebar/project/materials': '材质',
 			'sidebar/project/Assign': '应用',
@@ -1041,10 +1040,6 @@ function Strings( config ) {
 			'sidebar/settings/shortcuts/undo': '撤销',
 			'sidebar/settings/shortcuts/focus': '聚焦',
 
-			'sidebar/settings/viewport': '视窗',
-			'sidebar/settings/viewport/grid': '网格',
-			'sidebar/settings/viewport/helpers': '辅助',
-
 			'sidebar/history': '历史记录',
 			'sidebar/history/persistent': '本地存储',
 
@@ -1052,6 +1047,9 @@ function Strings( config ) {
 			'toolbar/rotate': '旋转',
 			'toolbar/scale': '缩放',
 			'toolbar/local': '本地',
+
+			'viewport/controls/grid': '网格',
+			'viewport/controls/helpers': '辅助',
 
 			'viewport/info/objects': '物体',
 			'viewport/info/vertices': '顶点',

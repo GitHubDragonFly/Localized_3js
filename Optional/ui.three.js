@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { TGALoader } from 'three/addons/loaders/TGALoader.js';
 import { DDSLoader } from 'three/addons/loaders/DDSLoader.js';
 
-import { UIElement, UISpan, UIDiv, UIRow, UIButton, UICheckbox, UIText, UINumber } from './ui.js';
+import { UISpan, UIDiv, UIRow, UIButton, UICheckbox, UIText, UINumber } from './ui.js';
 import { MoveObjectCommand } from '../commands/MoveObjectCommand.js';
 
 class UITexture extends UISpan {
 
-	constructor( mapping ) {
+	constructor( editor ) {
 
 		super();
 
@@ -56,7 +56,7 @@ class UITexture extends UISpan {
 
 				reader.addEventListener( 'load', function ( event ) {
 
-					// assuming RGBE/Radiance HDR image format
+					// assuming RGBE/Radiance HDR iamge format
 
 					const loader = new RGBELoader();
 					loader.load( event.target.result, function ( hdrTexture ) {
@@ -89,12 +89,12 @@ class UITexture extends UISpan {
 
 						if ( scope.onChangeCallback ) scope.onChangeCallback( texture );
 
+
 					} );
 
 				}, false );
 
 				reader.readAsDataURL( file );
-
 
 			} else if ( extension === 'dds' ) {
 
@@ -121,28 +121,27 @@ class UITexture extends UISpan {
 
 				reader.addEventListener( 'load', function ( event ) {
 
-					let loader = new KTX2Loader();
-					loader.setTranscoderPath( '../../examples/jsm/libs/basis/' );
-					// assume WebGLRenderer() use
-					loader.detectSupport( new THREE.WebGLRenderer() );
+					const arrayBuffer = event.target.result;
+					const blobURL = URL.createObjectURL( new Blob( [ arrayBuffer ] ) );
+					const ktx2Loader = new KTX2Loader();
+					ktx2Loader.setTranscoderPath( '../../examples/jsm/libs/basis/' );
+					editor.signals.rendererDetectKTX2Support.dispatch( ktx2Loader );
 
-					loader.load( event.target.result, function ( texture ) {
+					ktx2Loader.load( blobURL, function ( texture ) {
 
 						texture.colorSpace = THREE.SRGBColorSpace;
 						texture.sourceFile = file.name;
-
+						texture.needsUpdate = true;
 						scope.setValue( texture );
 
 						if ( scope.onChangeCallback ) scope.onChangeCallback( texture );
+						ktx2Loader.dispose();
 
 					} );
 
-					loader.dispose();
+				} );
 
-				}, false );
-
-				reader.readAsDataURL( file );
-
+				reader.readAsArrayBuffer( file );
 
 			} else if ( file.type.match( 'image.*' ) ) {
 
@@ -151,7 +150,7 @@ class UITexture extends UISpan {
 					const image = document.createElement( 'img' );
 					image.addEventListener( 'load', function () {
 
-						const texture = new THREE.Texture( this, mapping );
+						const texture = new THREE.Texture( this );
 						texture.sourceFile = file.name;
 						texture.needsUpdate = true;
 
@@ -206,14 +205,14 @@ class UITexture extends UISpan {
 				canvas.title = texture.sourceFile;
 				const scale = canvas.width / image.width;
 
-				if ( image.data === undefined && texture.mipmaps.length === 0 ) {
-
-					context.drawImage( image, 0, 0, image.width * scale, image.height * scale );
-
-				} else {
+				if ( texture.isDataTexture || texture.isCompressedTexture ) {
 
 					const canvas2 = renderToCanvas( texture );
 					context.drawImage( canvas2, 0, 0, image.width * scale, image.height * scale );
+
+				} else {
+
+					context.drawImage( image, 0, 0, image.width * scale, image.height * scale );
 
 				}
 
@@ -240,145 +239,6 @@ class UITexture extends UISpan {
 		if ( texture !== null ) {
 
 			texture.colorSpace = colorSpace;
-
-		}
-
-		return this;
-
-	}
-
-	onChange( callback ) {
-
-		this.onChangeCallback = callback;
-
-		return this;
-
-	}
-
-}
-
-class UICubeTexture extends UIElement {
-
-	constructor() {
-
-		const container = new UIDiv();
-
-		super( container.dom );
-
-		this.cubeTexture = null;
-		this.onChangeCallback = null;
-
-		this.textures = [];
-
-		const scope = this;
-
-		const pRow = new UIRow();
-		const nRow = new UIRow();
-
-		pRow.add( new UIText( 'P:' ).setWidth( '35px' ) );
-		nRow.add( new UIText( 'N:' ).setWidth( '35px' ) );
-
-		const posXTexture = new UITexture().onChange( onTextureChanged );
-		const negXTexture = new UITexture().onChange( onTextureChanged );
-		const posYTexture = new UITexture().onChange( onTextureChanged );
-		const negYTexture = new UITexture().onChange( onTextureChanged );
-		const posZTexture = new UITexture().onChange( onTextureChanged );
-		const negZTexture = new UITexture().onChange( onTextureChanged );
-
-		this.textures.push( posXTexture, negXTexture, posYTexture, negYTexture, posZTexture, negZTexture );
-
-		pRow.add( posXTexture );
-		pRow.add( posYTexture );
-		pRow.add( posZTexture );
-
-		nRow.add( negXTexture );
-		nRow.add( negYTexture );
-		nRow.add( negZTexture );
-
-		container.add( pRow, nRow );
-
-		function onTextureChanged() {
-
-			const images = [];
-
-			for ( let i = 0; i < scope.textures.length; i ++ ) {
-
-				const texture = scope.textures[ i ].getValue();
-
-				if ( texture !== null ) {
-
-					images.push( texture.isHDRTexture ? texture : texture.image );
-
-				}
-
-			}
-
-			if ( images.length === 6 ) {
-
-				const cubeTexture = new THREE.CubeTexture( images );
-				cubeTexture.needsUpdate = true;
-
-				if ( images[ 0 ].isHDRTexture ) cubeTexture.isHDRTexture = true;
-
-				scope.cubeTexture = cubeTexture;
-
-				if ( scope.onChangeCallback ) scope.onChangeCallback( cubeTexture );
-
-			}
-
-		}
-
-	}
-
-	setColorSpace( colorSpace ) {
-
-		const cubeTexture = this.getValue();
-		if ( cubeTexture !== null ) {
-
-			cubeTexture.colorSpace = colorSpace;
-
-		}
-
-		return this;
-
-	}
-
-	getValue() {
-
-		return this.cubeTexture;
-
-	}
-
-	setValue( cubeTexture ) {
-
-		this.cubeTexture = cubeTexture;
-
-		if ( cubeTexture !== null ) {
-
-			const images = cubeTexture.image;
-
-			if ( Array.isArray( images ) === true && images.length === 6 ) {
-
-				for ( let i = 0; i < images.length; i ++ ) {
-
-					const image = images[ i ];
-
-					const texture = new THREE.Texture( image );
-					this.textures[ i ].setValue( texture );
-
-				}
-
-			}
-
-		} else {
-
-			const textures = this.textures;
-
-			for ( let i = 0; i < textures.length; i ++ ) {
-
-				textures[ i ].setValue( null );
-
-			}
 
 		}
 
@@ -1002,4 +862,4 @@ function renderToCanvas( texture ) {
 
 }
 
-export { UITexture, UICubeTexture, UIOutliner, UIPoints, UIPoints2, UIPoints3, UIBoolean };
+export { UITexture, UIOutliner, UIPoints, UIPoints2, UIPoints3, UIBoolean };

@@ -1248,6 +1248,7 @@ function Loader( editor ) {
 						const { FBXLoader } = await import( 'three/addons/loaders/FBXLoader.js' );
 
 						const loader = new FBXLoader( manager );
+
 						const object = loader.parse( file.buffer );
 						object.name = filename;
 
@@ -1302,6 +1303,21 @@ function Loader( editor ) {
 							loader.ktx2Loader.dispose();
 
 						} );
+
+						break;
+
+					}
+
+					case 'usdz':
+
+					{
+
+						const { USDZLoader } = await import( 'three/addons/loaders/USDZLoader.js' );
+
+						const group = new USDZLoader( manager ).parse( file );
+						group.name = filename;
+
+						editor.execute( new AddObjectCommand( editor, group ) );
 
 						break;
 

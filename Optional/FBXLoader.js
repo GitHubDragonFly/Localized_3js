@@ -243,7 +243,51 @@ class FBXTreeParser {
 
 				const id = parseInt( nodeID );
 
-				images[ id ] = videoNode.RelativeFilename || videoNode.Filename;
+				let file_name = '';
+
+				if ( videoNode.RelativeFilename ) {
+
+					if ( videoNode.RelativeFilename[ 1 ] === ':' ) { // Local drive path like C: or Z:
+
+						if ( videoNode.RelativeFilename.indexOf( '/' ) !== -1 ) {
+
+							file_name = videoNode.RelativeFilename.substring( videoNode.RelativeFilename.lastIndexOf( '/' ) + 1 );
+
+						} else if ( videoNode.RelativeFilename.indexOf( '\\' ) !== -1 ) {
+
+							file_name = videoNode.RelativeFilename.substring( videoNode.RelativeFilename.lastIndexOf( '\\' ) + 1 );
+
+						}
+
+					} else {
+
+						file_name = videoNode.RelativeFilename;
+
+					}
+
+				} else if ( videoNode.Filename ) {
+
+					if ( videoNode.Filename[ 1 ] === ':' ) { // Local drive path like C: or Z:
+
+						if ( videoNode.Filename.indexOf( '/' ) !== -1 ) {
+
+							file_name = videoNode.Filename.substring( videoNode.Filename.lastIndexOf( '/' ) + 1 );
+
+						} else if ( videoNode.Filename.indexOf( '\\' ) !== -1 ) {
+
+							file_name = videoNode.Filename.substring( videoNode.Filename.lastIndexOf( '\\' ) + 1 );
+
+						}
+
+					} else {
+
+						file_name = videoNode.Filename;
+
+					}
+
+				}
+
+				images[ id ] = file_name;
 
 				// raw image data is in videoNode.Content
 				if ( 'Content' in videoNode ) {
@@ -425,12 +469,6 @@ class FBXTreeParser {
 				this.textureLoader.setPath( undefined );
 
 			}
-
-		}
-
-		if ( fileName.indexOf( ':' ) !== -1 && fileName.indexOf( '/' ) !== -1 ) {
-
-			fileName = fileName.substring( fileName.lastIndexOf( '/' ) + 1 );
 
 		}
 

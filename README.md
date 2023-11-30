@@ -4,7 +4,7 @@ IF, for whatever reason, you might need to locally run the [three.js](https://gi
 
 Note: this repository also provides optional customized files which can provide additional functionality currently not available in the Editor. These files should be implemented as either `all` or `none`. Also try using only some of these files but don't get surprised if eventually something doesn't work properly.
 
-Maybe conside learning how to modify these files yourself since three.js might implement some features in the future that would not be available in current optional files - this was tested as working with r158 (even r159dev).
+Maybe consider learning how to modify these files yourself since three.js might implement some features in the future that would not be available in the current optional files or might even break their functionality. This was tested as working with r158 (even r159dev).
 
 # Requirements
 

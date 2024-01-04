@@ -84,33 +84,33 @@ class OBJExporter {
 
 				let temp_name = mesh.material.name;
 
-				if ( material_names.includes( temp_name ) === false || material_colors[ temp_name ] !== mesh.material.color ) {
+				if ( material_names.includes( temp_name ) === false ) {
 
-					if ( material_colors[ temp_name ] !== mesh.material.color ) mesh.material.name = temp_name;
-
-					material_colors[ temp_name ] = mesh.material.color;
-
-				}
-
-				if ( ! materials[ temp_name ] || ( materials[ temp_name ] && materials[ temp_name ] !== mesh.material ) ) {
-
-					if ( materials[ temp_name ] && materials[ temp_name ] !== mesh.material ) {
-
-						temp_name = mesh.material.name + '_' + mesh_count;
-						mesh.material.name = temp_name;
-						output += 'usemtl ' + temp_name + '\n';
-						materials[ temp_name ] = mesh.material;
-
-					} else {
-
-						output += 'usemtl ' + mesh.material.name + '\n';
-						materials[ mesh.material.name ] = mesh.material;
-
-					}
+					material_names.push( temp_name );
+					materials[ temp_name ] = mesh.material;
 
 				}
 
-				material_names.push( temp_name );
+				if ( ! materials[ temp_name ] ) {
+
+					materials[ temp_name ] = mesh.material;
+					output += 'usemtl ' + temp_name + '\n';
+
+				} else if ( materials[ temp_name ] !== mesh.material ) {
+
+					temp_name = mesh.material.name + '_' + mesh_count;
+					mesh.material.name = temp_name;
+
+					output += 'usemtl ' + temp_name + '\n';
+
+					materials[ temp_name ] = mesh.material;
+					material_names.push( temp_name );
+
+				} else {
+
+					output += 'usemtl ' + temp_name + '\n';
+
+				}
 
 			} else if ( mesh.material && Array.isArray( mesh.material ) ) {
 

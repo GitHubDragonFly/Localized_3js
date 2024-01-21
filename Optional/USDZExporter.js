@@ -1,5 +1,6 @@
-import * as THREE from 'three';
-import * as fflate from '../libs/fflate.module.js';
+import { LinearSRGBColorSpace, MeshStandardMaterial } from "three";
+import { strToU8, zipSync } from "../libs/fflate.module.js";
+import { decompress } from "../utils/TextureUtils.js";
 
 class USDZExporter {
 
@@ -11,24 +12,85 @@ class USDZExporter {
 				planeAnchoring: { alignment: 'horizontal' }
 			},
 			quickLookCompatible: false,
+			map_flip_required: false,
+			maxTextureSize: 1024,
 		}, options );
 
 		const files = {};
-		const modelFileName = 'model.usda'; // model file should be first in USDZ archive so we init it here
+		const modelFileName = 'model.usda';
+
+		// model file should be first in USDZ archive so we init it here
 
 		files[ modelFileName ] = null;
 		let output = buildHeader();
 		const materials = {};
 		const textures = {};
 
-		scene.traverseVisible( object => {
+		scene.traverseVisible( ( object ) => {
 
 			if ( object.isMesh ) {
 
-				if ( object.material.isMeshStandardMaterial ) {
+				let material;
+
+				if ( Array.isArray( object.material ) === true ) {
+
+					console.warn( 'THREE.USDZExporter: Material arrays are not supported. Texture and/or color loss may occur.', object.material );
+
+					material = object.material[ 0 ];
+
+					// check for more colorful texture than white
+
+					if ( material.color.r === 1 && material.color.g === 1 && material.color.b === 1 ) {
+
+						if ( object.material.length > 1 ) {
+
+							for ( let i = 1; i < object.material.length; i++ ) {
+
+								if ( material.color.r !== object.material[ i ].color.r
+									 || material.color.g !== object.material[ i ].color.g
+									  || material.color.b !== object.material[ i ].color.b ) {
+
+									material = object.material[ i ];
+									break;
+
+								}
+
+							}
+
+						}
+
+					}
+
+					if ( ! material.isMeshStandardMaterial ) {
+
+						let map = material.map ? material.map : null;
+						let color = material.color;
+
+						material = new MeshStandardMaterial( {
+
+							metalness: 0.05,
+							roughness: 0.6,
+							flatShading: false,
+							opacity: object.material.opacity || 1,
+							transparent: object.material.transparent || false
+
+						} );
+
+						if ( color ) material.color.setRGB( color.r, color.g, color.b, LinearSRGBColorSpace );
+
+						if ( map ) {
+
+							material.map = map;
+
+							// DAE and FBX model exports need this map flip
+
+							if ( options.map_flip_required === true ) material.map.repeat.y = - 1;
+
+						}
+
+					}
 
 					const geometry = object.geometry;
-					const material = object.material;
 					const geometryFileName = 'geometries/Geometry_' + geometry.id + '.usd';
 
 					if ( ! ( geometryFileName in files ) ) {
@@ -48,7 +110,68 @@ class USDZExporter {
 
 				} else {
 
-					console.warn( 'THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)', object );
+					if ( ! object.material.isMeshStandardMaterial ) {
+
+						let map = object.material.map ? object.material.map.clone() : null;
+
+						if ( map ) {
+
+							if ( map.isCompressedTexture ) map = decompress( map );
+
+							material = new MeshStandardMaterial( {
+
+								map: map,
+								metalness: 0.05,
+								roughness: 0.6,
+								flatShading: false,
+								opacity: object.material.opacity || 1,
+								transparent: object.material.transparent || false
+
+							} );
+
+							// DAE and FBX model exports need this map flip
+
+							if ( options.map_flip_required === true ) material.map.repeat.y = - 1;
+
+						} else {
+
+							material = new MeshStandardMaterial( {
+
+								metalness: 0.05,
+								roughness: 0.6,
+								flatShading: false,
+								opacity: object.material.opacity || 1,
+								transparent: object.material.transparent || false
+
+							} );
+
+						}
+
+						if ( object.material.color ) material.color.setRGB( object.material.color.r, object.material.color.g, object.material.color.b, LinearSRGBColorSpace );
+
+					} else {
+
+						material = object.material;
+
+					}
+
+					const geometry = object.geometry;
+					const geometryFileName = 'geometries/Geometry_' + geometry.id + '.usd';
+
+					if ( ! ( geometryFileName in files ) ) {
+
+						const meshObject = buildMeshObject( geometry );
+						files[ geometryFileName ] = buildUSDFileAsString( meshObject );
+
+					}
+
+					if ( ! ( material.uuid in materials ) ) {
+
+						materials[ material.uuid ] = material;
+
+					}
+
+					output += buildXform( object, geometry, material );
 
 				}
 
@@ -57,15 +180,22 @@ class USDZExporter {
 		} );
 
 		output += buildMaterials( materials, textures, options.quickLookCompatible );
-		files[ modelFileName ] = fflate.strToU8( output );
+		files[ modelFileName ] = strToU8( output );
 		output = null;
 
 		for ( const id in textures ) {
 
-			const texture = textures[ id ];
+			let texture = textures[ id ];
+
+			if ( texture.isCompressedTexture === true ) {
+
+				texture = decompress( texture );
+
+			}
+
 			const color = id.split( '_' )[ 1 ];
 			const isRGBA = texture.format === 1023;
-			const canvas = imageToCanvas( texture.image, color );
+			const canvas = imageToCanvas( texture.image, color, options.maxTextureSize );
 			const blob = await new Promise( resolve => canvas.toBlob( resolve, isRGBA ? 'image/png' : 'image/jpeg', 1 ) );
 			files[ `textures/Texture_${id}.${isRGBA ? 'png' : 'jpg'}` ] = new Uint8Array( await blob.arrayBuffer() );
 
@@ -99,7 +229,7 @@ class USDZExporter {
 
 		}
 
-		return fflate.zipSync( files, {
+		return zipSync( files, {
 			level: 0
 		} );
 
@@ -107,11 +237,11 @@ class USDZExporter {
 
 }
 
-function imageToCanvas( image, color ) {
+function imageToCanvas( image, color, maxTextureSize ) {
 
-	if ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement || typeof OffscreenCanvas !== 'undefined' && image instanceof OffscreenCanvas || typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) {
+	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) || ( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) || ( typeof OffscreenCanvas !== 'undefined' && image instanceof OffscreenCanvas ) || ( typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) ) {
 
-		const scale = 1024 / Math.max( image.width, image.height );
+		const scale = maxTextureSize / Math.max( image.width, image.height );
 		const canvas = document.createElement( 'canvas' );
 		canvas.width = image.width * Math.min( 1, scale );
 		canvas.height = image.height * Math.min( 1, scale );
@@ -149,8 +279,6 @@ function imageToCanvas( image, color ) {
 
 }
 
-//
-
 const PRECISION = 7;
 
 function buildHeader() {
@@ -173,10 +301,11 @@ function buildUSDFileAsString( dataToInsert ) {
 
 	let output = buildHeader();
 	output += dataToInsert;
-	return fflate.strToU8( output );
+	return strToU8( output );
 
-} // Xform
+}
 
+// Xform
 
 function buildXform( object, geometry, material ) {
 
@@ -214,8 +343,9 @@ function buildMatrixRow( array, offset ) {
 
 	return `(${array[ offset + 0 ]}, ${array[ offset + 1 ]}, ${array[ offset + 2 ]}, ${array[ offset + 3 ]})`;
 
-} // Mesh
+}
 
+// Mesh
 
 function buildMeshObject( geometry ) {
 
@@ -333,8 +463,9 @@ function buildVector2Array( attribute, count ) {
 
 	return array.join( ', ' );
 
-} // Materials
+}
 
+// Materials
 
 function buildMaterials( materials, textures, quickLookCompatible = false ) {
 
@@ -359,7 +490,7 @@ ${array.join( '' )}
 function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	// https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
-	const pad = '            ';
+	const pad = '		';
 	const inputs = [];
 	const samplers = [];
 
@@ -447,15 +578,24 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	}
 
-	if ( material.opacity ) {
+	if ( material.opacity !== undefined ) {
 
-		if ( material.transmission && material.transmission > 0.0 ) {
+		if ( material.transmission !== undefined && material.transmission > 0.0 ) {
 
-			// workaround - use '0.0002' to let USDZ Loader set transmission
+			// workaround to let USDZ Loader set transmission
 			// this will approximate the models appearance
 
-			inputs.push( `${pad}float inputs:opacity = ${material.transmission}` );
-			inputs.push( `${pad}float inputs:opacityThreshold = 0.0002` );
+			if ( material.thickness !== undefined && material.thickness > 0.0 ) {
+
+				inputs.push( `${pad}float inputs:opacity = 0.25` );
+				inputs.push( `${pad}float inputs:opacityThreshold = 0.0059` );
+
+			} else {
+
+				inputs.push( `${pad}float inputs:opacity = 0.95` );
+				inputs.push( `${pad}float inputs:opacityThreshold = 0.0058` );
+
+			}
 
 			if ( material.transmissionMap ) {
 
@@ -467,12 +607,12 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 		} else if ( material.transparent === true || material.opacity < 1.0 ) {
 
 			inputs.push( `${pad}float inputs:opacity = ${material.opacity}` );
-			inputs.push( `${pad}float inputs:opacityThreshold = 0.0001` );
+			inputs.push( `${pad}float inputs:opacityThreshold = 0.0057` );
 
 		} else if ( material.alphaMap ) {
 
 			inputs.push( `${pad}float inputs:opacity = ${material.opacity}` );
-			inputs.push( `${pad}float inputs:opacityThreshold = 0.0001` );
+			inputs.push( `${pad}float inputs:opacityThreshold = 0.0057` );
 
 			inputs.push( `${pad}float inputs:opacity.connect = </Materials/Material_${material.id}/Texture_${material.alphaMap.id}_opacity.outputs:r>` );
 			samplers.push( buildTexture( material.alphaMap, 'opacity' ) );
@@ -521,7 +661,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	}
 
-	if ( material.roughness && material.roughness > 0.0 ) {
+	if ( material.roughness !== undefined ) {
 
 		inputs.push( `${pad}float inputs:roughness = ${material.roughness}` );
 
@@ -534,7 +674,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	}
 
-	if ( material.metalness && material.metalness > 0.0 ) {
+	if ( material.metalness !== undefined ) {
 
 		inputs.push( `${pad}float inputs:metallic = ${material.metalness}` );
 
@@ -562,7 +702,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 		}
 
-		if ( material.clearcoat && material.clearcoat > 0.0 ) {
+		if ( material.clearcoat !== undefined && material.clearcoat > 0.0 ) {
 
 			inputs.push( `${pad}float inputs:clearcoat = ${material.clearcoat}` );
 
@@ -575,7 +715,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 		}
 
-		if ( material.clearcoatRoughness && material.clearcoatRoughness > 0.0 ) {
+		if ( material.clearcoatRoughness !== undefined && material.clearcoatRoughness > 0.0 ) {
 
 			inputs.push( `${pad}float inputs:clearcoatRoughness = ${material.clearcoatRoughness}` );
 
@@ -588,7 +728,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 		}
 
-		if ( material.ior && material.ior >= 1.0 ) inputs.push( `${pad}float inputs:ior = ${material.ior}` );
+		if ( material.ior !== undefined && material.ior >= 1.0 ) inputs.push( `${pad}float inputs:ior = ${material.ior}` );
 
 	}
 

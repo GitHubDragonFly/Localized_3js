@@ -569,7 +569,7 @@ function MenubarFile( editor ) {
 
 		const exporter = new USDZExporter();
 
-		saveArrayBuffer( await exporter.parse( editor.scene ), 'model.usdz' );
+		saveArrayBuffer( await exporter.parse( editor.scene, { map_flip_required: editor.map_flip_required } ), 'model.usdz' );
 
 	} );
 	options.add( option );

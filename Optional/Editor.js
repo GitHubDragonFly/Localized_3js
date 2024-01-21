@@ -14,7 +14,7 @@ _DEFAULT_CAMERA.lookAt( new THREE.Vector3() );
 
 var directionalLight1 = new THREE.DirectionalLight( 0xffffff, 3.0 );
 
-var flip_required = false;
+var flip_required = false, map_flip_required = false;
 
 function Editor() {
 
@@ -104,6 +104,7 @@ function Editor() {
 	this.strings = new Strings( this.config );
 	this.selector = new Selector( this );
 	this.flip_required = flip_required;
+	this.map_flip_required = map_flip_required;
 
 	this.loader = new Loader( this );
 

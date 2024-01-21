@@ -24,7 +24,6 @@ class USDAParser {
 		const data = {};
 
 		const lines = text.split( '\n' );
-		const length = lines.length;
 
 		let group, meta;
 		let string = null;
@@ -35,9 +34,7 @@ class USDAParser {
 
 		function parse_lines() {
 
-			for ( let i = 0; i < length; i++ ) {
-
-				let line = lines[ i ];
+			for ( const line of lines ) {
 
 				if ( line.trim() === '' ) continue;
 
@@ -74,7 +71,7 @@ class USDAParser {
 
 					stack.pop();
 
-					if ( stack.length === 0 ) return;
+					if ( stack.length === 0 ) continue;
 
 					target = stack[ stack.length - 1 ];
 
@@ -92,7 +89,7 @@ class USDAParser {
 
 					stack.pop();
 
-					if ( stack.length === 0 ) return;
+					if ( stack.length === 0 ) continue;
 
 					target = stack[ stack.length - 1 ];
 
@@ -215,12 +212,9 @@ class USDZLoader extends Loader {
 
 		if ( file === undefined ) {
 
-			console.warn( 'THREE.USDZLoader: No usda file found.' );
-
-			return new Group();
+			throw new Error( 'THREE.USDZLoader: No usda file found.' );
 
 		}
-
 
 		// Parse file
 
@@ -473,7 +467,7 @@ class USDZLoader extends Loader {
 
 		function buildMaterial( data ) {
 
-			const material = new MeshPhysicalMaterial();
+			const material = new MeshPhysicalMaterial( { name: Loader.DEFAULT_MATERIAL_NAME } );
 
 			if ( data !== undefined ) {
 
@@ -483,21 +477,18 @@ class USDZLoader extends Loader {
 
 					if ( 'float inputs:opacity' in surface ) {
 
+						material.opacity = parseFloat( surface[ 'float inputs:opacity' ] );
+
 						if ( 'float inputs:opacityThreshold' in surface ) {
 
 							let opacity_threshold = parseFloat( surface[ 'float inputs:opacityThreshold' ] );
 
-							if ( opacity_threshold === 0.0002 ) {
+							// workaround to set transmission values
+							// this will approximate the models appearance
 
-								// workaround to set transmission values
-								// this will approximate the models appearance
+							if ( opacity_threshold === 0.0059 || opacity_threshold === 0.0058 ) {
 
-								material.transmission = parseFloat( surface[ 'float inputs:opacity' ] );
-
-								// set arbitrary opacity and transparency
-
-								material.transparent = true;
-								material.opacity = 0.95;
+								material.transmission = 1;
 
 								// set transmissionMap
 
@@ -517,10 +508,11 @@ class USDZLoader extends Loader {
 
 								}
 
-							} else { // opacity_threshold is 0.0001
+							} else { // opacity_threshold is 0.0057
 
-								material.opacity = parseFloat( surface[ 'float inputs:opacity' ] );
 								material.transparent = true;
+
+								// set alphaMap
 
 								if ( 'float inputs:opacity.connect' in surface ) {
 
@@ -539,10 +531,6 @@ class USDZLoader extends Loader {
 								}
 
 							}
-
-						} else {
-
-							material.opacity = parseFloat( surface[ 'float inputs:opacity' ] );
 
 						}
 
@@ -649,22 +637,23 @@ class USDZLoader extends Loader {
 					if ( 'float inputs:roughness' in surface ) {
 
 						material.roughness = parseFloat( surface[ 'float inputs:roughness' ] );
+						if ( material.transmission > 0 && material.roughness === 1 ) material.roughness = 0.95;
 
-					}
+						if ( 'float inputs:roughness.connect' in surface ) {
 
-					if ( 'float inputs:roughness.connect' in surface ) {
+							const path = surface[ 'float inputs:roughness.connect' ];
+							const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
 
-						const path = surface[ 'float inputs:roughness.connect' ];
-						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
+							if ( ! material.roughness || material.roughness === 0 ) material.roughness = 1.0;
 
-						if ( ! material.roughness || material.roughness === 0 ) material.roughness = 1.0;
+							material.roughnessMap = buildTexture( sampler );
+							material.roughnessMap.colorSpace = NoColorSpace;
 
-						material.roughnessMap = buildTexture( sampler );
-						material.roughnessMap.colorSpace = NoColorSpace;
+							if ( 'def Shader "Transform2d_roughness"' in data ) {
 
-						if ( 'def Shader "Transform2d_roughness"' in data ) {
+								setTextureParams( material.roughnessMap, data[ 'def Shader "Transform2d_roughness"' ] );
 
-							setTextureParams( material.roughnessMap, data[ 'def Shader "Transform2d_roughness"' ] );
+							}
 
 						}
 
@@ -674,21 +663,21 @@ class USDZLoader extends Loader {
 
 						material.metalness = parseFloat( surface[ 'float inputs:metallic' ] );
 
-					}
+						if ( 'float inputs:metallic.connect' in surface ) {
 
-					if ( 'float inputs:metallic.connect' in surface ) {
+							const path = surface[ 'float inputs:metallic.connect' ];
+							const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
 
-						const path = surface[ 'float inputs:metallic.connect' ];
-						const sampler = findTexture( root, /(\w+).output/.exec( path )[ 1 ] );
+							if ( ! material.metalness || material.metalness === 0 ) material.metalness = 1.0;
 
-						if ( ! material.metalness || material.metalness === 0 ) material.metalness = 1.0;
+							material.metalnessMap = buildTexture( sampler );
+							material.metalnessMap.colorSpace = NoColorSpace;
 
-						material.metalnessMap = buildTexture( sampler );
-						material.metalnessMap.colorSpace = NoColorSpace;
+							if ( 'def Shader "Transform2d_metallic"' in data ) {
 
-						if ( 'def Shader "Transform2d_metallic"' in data ) {
+								setTextureParams( material.metalnessMap, data[ 'def Shader "Transform2d_metallic"' ] );
 
-							setTextureParams( material.metalnessMap, data[ 'def Shader "Transform2d_metallic"' ] );
+							}
 
 						}
 

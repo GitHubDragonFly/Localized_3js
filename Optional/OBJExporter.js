@@ -614,7 +614,7 @@ class OBJExporter {
 					if ( mat.emissiveIntensity !== undefined && mat.emissiveIntensity !== 1 ) mtlOutput += 'Pe ' + mat.emissiveIntensity + '\n';
 					if ( mat.anisotropy && mat.anisotropy > 0 ) {
 						mtlOutput += 'Pa ' + mat.anisotropy + '\n';
-						if ( mat.anisotropyRotation && mat.anisotropyRotation !== 0 ) mtlOutput += 'Par ' + mat.anisotropyRotation + '\n';
+						if ( mat.anisotropyRotation !== undefined ) mtlOutput += 'Par ' + mat.anisotropyRotation + '\n';
 					}
 					if ( mat.attenuationDistance && mat.attenuationDistance !== Infinity ) {
 						mtlOutput += 'Pac ' + mat.attenuationColor.r + ' ' + mat.attenuationColor.g + ' ' + mat.attenuationColor.b + '\n';

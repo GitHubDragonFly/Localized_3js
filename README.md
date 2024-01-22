@@ -86,6 +86,7 @@ Customized features would be mainly Editor related:
 - Unofficial BIM loader ([dotbim](https://github.com/ricaun/dotbim.three.js) based)
 - Customized USDZ loader / exporter
   - can approximate transmission effect
+  - `USDZ (flipY)` as an additional menu export option that can flip exported textures
 - Localized IFC loader
 - Customized OBJ exporter:
   - it will export MTL file along with the OBJ model / textures

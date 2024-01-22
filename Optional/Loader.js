@@ -65,7 +65,6 @@ function Loader( editor ) {
 	this.loadFile = function ( file, manager ) {
 
 		editor.flip_required = false;
-		editor.map_flip_required = false;
 
 		const filename = file.name;
 		const extension = filename.split( '.' ).pop().toLowerCase();
@@ -223,8 +222,6 @@ function Loader( editor ) {
 
 				reader.addEventListener( 'load', async function ( event ) {
 
-					editor.map_flip_required = true;
-
 					const contents = event.target.result;
 
 					const { ColladaLoader } = await import( 'three/addons/loaders/ColladaLoader.js' );
@@ -293,8 +290,6 @@ function Loader( editor ) {
 			{
 
 				reader.addEventListener( 'load', async function ( event ) {
-
-					editor.map_flip_required = true;
 
 					const contents = event.target.result;
 

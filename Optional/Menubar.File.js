@@ -569,7 +569,23 @@ function MenubarFile( editor ) {
 
 		const exporter = new USDZExporter();
 
-		saveArrayBuffer( await exporter.parse( editor.scene, { map_flip_required: editor.map_flip_required } ), 'model.usdz' );
+		saveArrayBuffer( await exporter.parse( editor.scene ), 'model.usdz' );
+
+	} );
+	options.add( option );
+
+	// Export USDZ (flipY)
+
+	option = new UIRow();
+	option.setClass( 'option' );
+	option.setTextContent( strings.getKey( 'menubar/file/export/usdz_flipY' ) );
+	option.onClick( async function () {
+
+		const { USDZExporter } = await import( 'three/addons/exporters/USDZExporter.js' );
+
+		const exporter = new USDZExporter();
+
+		saveArrayBuffer( await exporter.parse( editor.scene, { map_flip_required: true } ), 'model.usdz' );
 
 	} );
 	options.add( option );

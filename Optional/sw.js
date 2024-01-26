@@ -71,6 +71,7 @@ const assets = [
 
 	'../examples/jsm/environments/RoomEnvironment.js',
 
+	'../examples/jsm/exporters/3DMExporter.js',
 	'../examples/jsm/exporters/ColladaExporter.js',
 	'../examples/jsm/exporters/DRACOExporter.js',
 	'../examples/jsm/exporters/GLTFExporter.js',

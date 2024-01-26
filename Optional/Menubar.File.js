@@ -175,9 +175,29 @@ function MenubarFile( editor ) {
 	} );
 	options.add( option );
 
-	//
-
 	options.add( new UIHorizontalRule() );
+
+	// Export 3DM (Rhino)
+
+	option = new UIRow();
+	option.setClass( 'option' );
+	option.setTextContent( strings.getKey( 'menubar/file/export/3dm' ) );
+	option.onClick( async function () {
+
+		const scene = editor.scene;
+
+		const { Rhino3dmExporter } = await import( 'three/addons/exporters/3DMExporter.js' );
+
+		const exporter = new Rhino3dmExporter();
+
+		exporter.parse( scene, function ( result ) {
+
+			saveArrayBuffer( result, 'scene.3dm' );
+
+		} );
+
+	} );
+	options.add( option );
 
 	// Export DAE
 

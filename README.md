@@ -58,6 +58,7 @@ These files / folders should be placed in their corresponding folder and replace
 | Editor.js (file) | main folder/editor/js/ |
 | Menubar.File.js (file) | main folder/editor/js/ |
 | ui.three.js (file) | main folder/editor/js/libs/ |
+| 3DMLoader.js (file) | main folder/examples/jsm/loaders/ |
 | BIMLoader.js (file) | main folder/examples/jsm/loaders/ |
 | ColladaLoader.js (file) | main folder/examples/jsm/loaders/ |
 | FBXLoader.js (file) | main folder/examples/jsm/loaders/ |
@@ -70,6 +71,7 @@ These files / folders should be placed in their corresponding folder and replace
 | LDRAWLoader.js (file) | main folder/examples/jsm/loaders/ |
 | ldraw-parts-library-master (folder) | main folder/editor/ |
 | PRWMLoader.js (file) | main folder/examples/jsm/loaders/ |
+| 3DMExporter.js (file) | main folder/examples/jsm/exporters/ |
 | OBJExporter.js (file) | main folder/examples/jsm/exporters/ |
 | PLYExporter.js (file) | main folder/examples/jsm/exporters/ |
 | USDZExporter.js (file) | main folder/examples/jsm/exporters/ |
@@ -84,7 +86,10 @@ Customized features would be mainly Editor related:
 - Automatic addition of `DirectionalLight` to the new scene
 - Customized PDB, PRWM, LDRAW and XYZ loaders
 - Unofficial BIM loader ([dotbim](https://github.com/ricaun/dotbim.three.js) based)
-- Customized USDZ loader / exporter
+- Customized 3DM loader / exporter:
+  - loader has slightly different color handling and corrected typos
+  - exporter is unofficial and can export texturless meshes and points
+- Customized USDZ loader / exporter:
   - can approximate transmission effect
   - `USDZ (flipY)` as an additional menu export option that can flip exported textures
 - Localized IFC loader

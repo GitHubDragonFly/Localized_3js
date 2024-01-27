@@ -8,7 +8,7 @@ import {
 	MeshPhongMaterial,
 	MeshPhysicalMaterial,
 	RepeatWrapping,
-	SRGBColorSpace,
+	NoColorSpace,
 	TextureLoader,
 	Vector2
 } from 'three';
@@ -357,19 +357,18 @@ class MaterialCreator {
 			if ( params[ mapType ] ) return; // Keep the first encountered texture
 
 			const texParams = scope.getTextureParams( original_mat[ prop ] );
-			const map = scope.loadTexture( resolveURL( scope.baseUrl, value ) );
+			const map = scope.loadTexture( resolveURL( scope.baseUrl, value ), null, materialName );
 
 			map.repeat.copy( texParams.scale );
 			map.offset.copy( texParams.offset );
+			map.center.copy( texParams.center );
+
+			map.rotation = texParams.rotation;
 
 			map.wrapS = texParams.wrapS; // map.wrapS = scope.wrap;
 			map.wrapT = texParams.wrapT; // map.wrapT = scope.wrap;
 
-			if ( mapType === 'map' || mapType === 'emissiveMap' ) {
-
-				map.colorSpace = SRGBColorSpace;
-
-			}
+			map.colorSpace = NoColorSpace;
 
 			params[ mapType ] = map;
 
@@ -767,6 +766,25 @@ class MaterialCreator {
 			if ( refraction_present === true ) params.ior = refraction_value;
 			if ( params.iridescence ) params.iridescenceThicknessRange = iridescenceThicknessRange;
 
+			// Anisotropy works fine in GLTF Viewer but is inverted in OBJ Viewer
+			// The following modifications seem to work but might be incorrect
+
+			if ( params.anisotropy && params.anisotropyMap && params.anisotropyRotation ) {
+
+				params.anisotropyMap.mapping = 300;
+				params.anisotropyRotation = - ( Math.asin( params.anisotropyRotation ) / params.anisotropy );
+
+			} else if ( params.anisotropyMap && params.anisotropy && ! params.anisotropyRotation ) {
+
+				params.anisotropyMap.mapping = 300;
+				params.anisotropyRotation = - Math.PI / 3;
+
+			} else if ( ! params.anisotropyMap && params.anisotropy && params.anisotropyRotation ) {
+
+				params.anisotropyRotation = - params.anisotropyRotation;
+
+			}
+
 			// Check params to allow correct transmission effect
 
 			if ( params.transmission && params.transmission > 0 ) {
@@ -780,6 +798,12 @@ class MaterialCreator {
 				if ( params.roughnessMap !== undefined && params.roughness === undefined ) {
 
 					params.roughness = 0.01;
+
+				}
+
+				if ( params.roughnessMap !== undefined && params.roughness === 1 ) {
+
+					params.roughness = 0.95;
 
 				}
 
@@ -809,8 +833,10 @@ class MaterialCreator {
 
 			scale: new Vector2( 1, 1 ),
 			offset: new Vector2( 0, 0 ),
+			center: new Vector2( 0, 0 ),
 			wrapS: RepeatWrapping,
-			wrapT: RepeatWrapping
+			wrapT: RepeatWrapping,
+			rotation: 0
 
 		 };
 
@@ -823,6 +849,24 @@ class MaterialCreator {
 
 			texParams.bumpScale = parseFloat( items[ pos + 1 ] );
 			items.splice( pos, 2 );
+
+		}
+
+		pos = items.indexOf( '-r' );
+
+		if ( pos >= 0 ) {
+
+			texParams.rotation = parseFloat( items[ pos + 1 ] );
+			items.splice( pos, 2 ); // we expect 2 parameters here!
+
+		}
+
+		pos = items.indexOf( '-c' );
+
+		if ( pos >= 0 ) {
+
+			texParams.center.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
+			items.splice( pos, 3 ); // we expect 3 parameters here!
 
 		}
 
@@ -858,10 +902,24 @@ class MaterialCreator {
 
 	}
 
-	loadTexture( url, mapping, onLoad, onProgress, onError ) {
+	loadTexture( url, mapping, materialName, onLoad, onProgress, onError ) {
 
 		const manager = ( this.manager !== undefined ) ? this.manager : DefaultLoadingManager;
-		let loader = manager.getHandler( url );
+
+		let ext = '';
+		if (this.materialsInfo[ materialName ].ext) ext = this.materialsInfo[ materialName ].ext;
+
+		let loader;
+
+		if (ext !== '') {
+
+			loader = manager.getHandler( ext );
+
+		} else {
+
+			loader = manager.getHandler( url );
+
+		}
 
 		if ( loader === null ) {
 
@@ -874,6 +932,8 @@ class MaterialCreator {
 		const texture = loader.load( url, onLoad, onProgress, onError );
 
 		if ( mapping !== undefined ) texture.mapping = mapping;
+
+		if (ext === '.tga') { texture.generateMipmaps = true; texture.flipY = true; }
 
 		return texture;
 

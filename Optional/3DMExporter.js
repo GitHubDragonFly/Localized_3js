@@ -2,7 +2,11 @@ import {
 	BufferAttribute,
 	DefaultLoadingManager,
 	InterleavedBuffer,
-	InterleavedBufferAttribute
+	InterleavedBufferAttribute,
+	MathUtils,
+	Matrix4,
+	Quaternion,
+	Vector3
 } from "three";
 
 import { deinterleaveAttribute } from "../utils/BufferGeometryUtils.js";

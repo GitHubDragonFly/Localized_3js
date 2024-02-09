@@ -11,18 +11,32 @@ import {
 
 import { deinterleaveAttribute } from "../utils/BufferGeometryUtils.js";
 
-import * as rhino3dm from "https://cdn.jsdelivr.net/npm/rhino3dm@8.0.1/rhino3dm.module.min.js";
+import * as rhino3dm from "../libs/rhino3dm/rhino3dm.module.js";
 
 /** !!! Work in progress !!!
 *
-*  - supports exporting meshes and points only
+*  - supports exporting textureless meshes of the following geometry types:
+*    - BufferGeometry, SphereGeometry, BoxGeometry, CylinderGeometry, ConeGeometry, IcosahedronGeometry
 *  - exporting mesh textures is not supported currently
+*  - supports exporting points
 *
 *  Usage:
 *
 *  const { Rhino3dmExporter } = await import( "../static/jsm/exporters/3DMExporter.js" );
 *  const exporter = new Rhino3dmExporter( manager );
-*  const arrayBuffer = exporter.parse( scene );
+*
+*  exporter.parse( scene, function( arrayBuffer ) {
+*    let blob = new Blob( [ arrayBuffer ], { type: 'application/octet-stream' } );
+*
+*    let link = document.createElement( 'a' );
+*    link.style.display = 'none';
+*    document.body.appendChild( link );
+*    link.href = URL.createObjectURL( blob );
+*    URL.revokeObjectURL( blob );
+*    link.download = 'Model.3dm';
+*    link.click();
+*    document.body.removeChild( link );
+*  }
 *
 *  Optional full format: exporter.parse( scene, onDone, onError, options );
 *
@@ -58,8 +72,11 @@ class Rhino3dmExporter {
 
 		const colorCorrect = Math.max( 0, Math.min( 128, options.vertexColorsCorrection ) );
 
+		let mesh_matrix4;
+
 		const uuid_array_mesh_geometries = {};
 		const uuid_array_point_geometries = {};
+		const uuid_array_other_geometries = {};
 		const uuid_array_mesh_materials = {};
 		const uuid_array_point_materials = {};
 
@@ -69,17 +86,48 @@ class Rhino3dmExporter {
 
 			if ( object.isMesh ) {
 
-				if ( ! uuid_array_mesh_geometries[ object.geometry.uuid ] )
-					uuid_array_mesh_geometries[ object.geometry.uuid ] = object.geometry.uuid;
+				if ( ! uuid_array_mesh_geometries[ object.geometry.uuid ] || object.geometry.type !== 'BufferGeometry' ) {
+
+					mesh_matrix4 = new Matrix4().copy( object.matrix );
+
+					function cumulative_matrix_check( parent ) {
+
+						if ( parent && ( parent.type === 'Group' || parent.type === 'Object3D' ) ) {
+
+							mesh_matrix4 = mesh_matrix4.premultiply( parent.matrix );
+
+							cumulative_matrix_check( parent.parent );
+
+						}	
+
+					}
+
+					let geometry_clone = object.geometry.clone();
+
+					if ( object.geometry.type !== 'BufferGeometry' ) {
+
+						uuid_array_mesh_geometries[ object.geometry.uuid ] = object.geometry.uuid;
+
+						cumulative_matrix_check( object.parent );
+
+						uuid_array_other_geometries[ object.uuid ] = geometry_clone.applyMatrix4( mesh_matrix4 );
+
+					} else {
+
+						uuid_array_mesh_geometries[ object.geometry.uuid ] = object.geometry.uuid;
+
+					}
+
+				}
 
 				if ( Array.isArray( object.material ) ) {
 
-					object.material.forEach( ( material ) => {
+					for ( const material of object.material ) {
 
 						if ( ! uuid_array_mesh_materials[ material.uuid ] )
 							uuid_array_mesh_materials[ material.uuid ] = material.uuid;
 
-					});
+					}
 
 				} else {
 
@@ -238,18 +286,17 @@ class Rhino3dmExporter {
 
 		let rhino_count = 0;
 
-		function parse_objects( objects ) {
+		let position, quaternion, scale, m4, group_m4;
+
+		async function parse_objects( objects ) {
 
 			for ( const object of objects ) {
 
+				position = new Vector3();
+				quaternion = new Quaternion();
+				scale = new Vector3();
+
 				let geometry;
-
-				let position = new Vector3();
-				let quaternion = new Quaternion();
-				let scale = new Vector3();
-
-				let m4 = new Matrix4().fromArray( object.matrix );
-				m4.decompose( position, quaternion, scale );
 
 				if ( ( object.type === 'Mesh' && uuid_array_mesh_geometries[ object.geometry ] )
 					|| ( object.type === 'Points' && uuid_array_point_geometries[ object.geometry ] ) ) {
@@ -258,9 +305,15 @@ class Rhino3dmExporter {
 
 						if ( geo.uuid === object.geometry ) {
 
-							geometry = scope.interleaved_buffer_attribute_check( geo );
+							m4 = new Matrix4().fromArray( object.matrix );
 
-							if ( object.type === 'Mesh' ) {
+							if ( geo.type === 'BufferGeometry' ) {
+
+								if ( group_m4 !== undefined ) m4.premultiply( group_m4 );
+
+								m4.decompose( position, quaternion, scale );
+	
+								geometry = scope.interleaved_buffer_attribute_check( geo );
 
 								const new_geometry = {};
 								new_geometry.type = geometry.type;
@@ -324,12 +377,25 @@ class Rhino3dmExporter {
 
 								}
 
-								rhino_object = new Module.Mesh.createFromThreejsJSON( new_geometry );
-								process_object( object, new_geometry );
+								if ( object.type === 'Mesh' ) {
 
-							} else {
+									rhino_object = new Module.Mesh.createFromThreejsJSON( new_geometry );
+									process_object( object, new_geometry );
 
-								rhino_object = new Module.PointCloud();
+								} else {
+
+									rhino_object = new Module.PointCloud();
+									process_object( object, new_geometry );
+
+								}
+
+							} else if ( uuid_array_other_geometries[ object.uuid ] ) {
+
+								// This should handle other geometries, like:
+								// SphereGeometry, BoxGeometry, CylinderGeometry, ConeGeometry, IcosahedronGeometry
+
+								geometry = uuid_array_other_geometries[ object.uuid ];
+								rhino_object = Module.Mesh.createFromThreejsJSON( { data: geometry } );
 								process_object( object, geometry );
 
 							}
@@ -355,16 +421,33 @@ class Rhino3dmExporter {
 
 				} else if ( object.type === 'Group' || object.type === 'Object3D' ) {
 
-					if ( object.children ) {
+					if ( object.children && object.children.length > 0 ) {
+
+						if ( group_m4 !== undefined ) {
+
+							group_m4 = group_m4.premultiply( new Matrix4().fromArray( object.matrix ) );
+
+						} else {
+
+							group_m4 = new Matrix4().fromArray( object.matrix );
+
+						}
 
 						parse_objects( object.children );
 
 					} else {
 
 						// Object3D might be a camera or a light
+
 						continue;
 
 					}
+
+				} else if ( object.type === 'Light' || object.type === 'AmbientLight' || object.type === 'PointLight'
+					|| object.type === 'HemisphereLight' || object.type === 'SpotLight' || object.type === 'DirectionalLight'
+					|| object.type === 'PerspectiveCamera' || object.type === 'OrthographicCamera' || object.type === 'CubeCamera') {
+
+					continue;
 
 				} else {
 
@@ -399,7 +482,7 @@ class Rhino3dmExporter {
 						tmp = tmp < 0 ? ( tmp * 0x8000 ) : ( tmp * 0x7FFF );
 						tmp = tmp / 256;
 						dataAsUint8Array[ i ] = tmp + colorCorrect;
-	
+
 					}
 
 					for ( let j = 0; j < dataAsUint8Array.length; j += geometry.data.attributes.color.itemSize ) {
@@ -412,7 +495,17 @@ class Rhino3dmExporter {
 
 				for ( const material of result.materials ) {
 
-					if ( material.uuid === object.material && uuid_array_mesh_materials[ object.material ] ) {
+					if ( Array.isArray( object.material ) ) {
+
+						if ( object.material.some( e => e === material.uuid ) ) process_material();
+
+					} else if ( material.uuid === object.material && uuid_array_mesh_materials[ object.material ] ) {
+
+						process_material();
+
+					}
+
+					function process_material() {
 
 						rhino_material = new Module.Material();
 						rhino_material.default();
@@ -449,8 +542,8 @@ class Rhino3dmExporter {
 									texture_names[ texture.name ] = texture.name;
 
 									let tex = {};
-									tex.name = texture.name;
 									tex.type = map_type;
+									tex.name = texture.name;
 									tex.flipY = texture.flipY;
 									tex.center = texture.center;
 									tex.offset = texture.offset;
@@ -522,12 +615,12 @@ class Rhino3dmExporter {
 
 							let diffuse_color = material.color.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-							rhino_material.diffuseColor = {
-								r: parseInt( diffuse_color.substring( 0, 2 ), 16 ),
-								g: parseInt( diffuse_color.substring( 2, 4 ), 16 ),
-								b: parseInt( diffuse_color.substring( 4 ), 16 ),
-								a: 255
-							};
+							let diffuse_r = parseInt( diffuse_color.substring( 0, 2 ), 16 );
+							let diffuse_g = parseInt( diffuse_color.substring( 2, 4 ), 16 );
+							let diffuse_b = parseInt( diffuse_color.substring( 4 ), 16 );
+							let diffuse_a = ( diffuse_r > 1 || diffuse_g > 1 || diffuse_b > 1 ) ? 255 : 1;
+
+							rhino_material.diffuseColor = { r: diffuse_r, g: diffuse_g, b: diffuse_b, a: diffuse_a };
 
 							rhino_attributes.drawColor = rhino_material.diffuseColor;
 
@@ -537,12 +630,12 @@ class Rhino3dmExporter {
 
 							let emission_color = material.emissive.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-							rhino_material.emissionColor = {
-								r: parseInt( emission_color.substring( 0, 2 ), 16 ),
-								g: parseInt( emission_color.substring( 2, 4 ), 16 ),
-								b: parseInt( emission_color.substring( 4 ), 16 ),
-								a: 255
-							};
+							let emission_r = parseInt( emission_color.substring( 0, 2 ), 16 );
+							let emission_g = parseInt( emission_color.substring( 2, 4 ), 16 );
+							let emission_b = parseInt( emission_color.substring( 4 ), 16 );
+							let emission_a = ( emission_r > 1 || emission_g > 1 || emission_b > 1 ) ? 255 : 1;
+
+							rhino_material.emissionColor = { r: emission_r, g: emission_g, b: emission_b, a: emission_a };
 
 						}
 
@@ -550,12 +643,12 @@ class Rhino3dmExporter {
 
 							let specular_color = material.specular.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-							rhino_material.specularColor = {
-								r: parseInt( specular_color.substring( 0, 2 ), 16 ),
-								g: parseInt( specular_color.substring( 2, 4 ), 16 ),
-								b: parseInt( specular_color.substring( 4 ), 16 ),
-								a: 255
-							};
+							let specular_r = parseInt( specular_color.substring( 0, 2 ), 16 );
+							let specular_g = parseInt( specular_color.substring( 2, 4 ), 16 );
+							let specular_b = parseInt( specular_color.substring( 4 ), 16 );
+							let specular_a = ( specular_r > 1 || specular_g > 1 || specular_b > 1 ) ? 255 : 1;
+
+							rhino_material.specularColor = { r: specular_r, g: specular_g, b: specular_b, a: specular_a };
 
 						}
 
@@ -585,12 +678,12 @@ class Rhino3dmExporter {
 
 								let base_color = material.color.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-								rhino_material.physicallyBased().baseColor = {
-									r: parseInt( base_color.substring( 0, 2 ), 16 ),
-									g: parseInt( base_color.substring( 2, 4 ), 16 ),
-									b: parseInt( base_color.substring( 4 ), 16 ),
-									a: 255
-								};
+								let base_r = parseInt( base_color.substring( 0, 2 ), 16 );
+								let base_g = parseInt( base_color.substring( 2, 4 ), 16 );
+								let base_b = parseInt( base_color.substring( 4 ), 16 );
+								let base_a = ( base_r > 1 || base_g > 1 || base_b > 1 ) ? 255 : 1;
+
+								rhino_material.physicallyBased().baseColor = { r: base_r, g: base_g, b: base_b, a: base_a };
 
 							}
 
@@ -598,13 +691,13 @@ class Rhino3dmExporter {
 
 								let specular_color = material.specularColor.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-								rhino_material.specularColor = {
-									r: parseInt( specular_color.substring( 0, 2 ), 16 ),
-									g: parseInt( specular_color.substring( 2, 4 ), 16 ),
-									b: parseInt( specular_color.substring( 4 ), 16 ),
-									a: 255
-								};
-
+								let specular_r = parseInt( specular_color.substring( 0, 2 ), 16 );
+								let specular_g = parseInt( specular_color.substring( 2, 4 ), 16 );
+								let specular_b = parseInt( specular_color.substring( 4 ), 16 );
+								let specular_a = ( specular_r > 1 || specular_g > 1 || specular_b > 1 ) ? 255 : 1;
+	
+								rhino_material.specularColor = { r: specular_r, g: specular_g, b: specular_b, a: specular_a };
+	
 							}
 
 							if ( material.specularIntensity !== undefined && material.specularIntensity > 0 )
@@ -670,7 +763,7 @@ class Rhino3dmExporter {
 					for ( let j = 0; j < dataAsUint8Array.length; j += geometry.data.attributes.color.itemSize ) {
 
 						let location = [ geometry_position_array[ j ], geometry_position_array[ j + 1 ], geometry_position_array[ j + 2 ] ];
-			
+
 						let point_color = {
 							r: dataAsUint8Array[ j ],
 							g: dataAsUint8Array[ j + 1 ],
@@ -710,12 +803,12 @@ class Rhino3dmExporter {
 
 								let diffuse_color = material.color.toString( 16 ).toUpperCase().padStart( 6, '0' );
 
-								let point_color = {
-									r: parseInt( diffuse_color.substring( 0, 2 ), 16 ),
-									g: parseInt( diffuse_color.substring( 2, 4 ), 16 ),
-									b: parseInt( diffuse_color.substring( 4 ), 16 ),
-									a: 255
-								};
+								let diffuse_r = parseInt( diffuse_color.substring( 0, 2 ), 16 );
+								let diffuse_g = parseInt( diffuse_color.substring( 2, 4 ), 16 );
+								let diffuse_b = parseInt( diffuse_color.substring( 4 ), 16 );
+								let diffuse_a = ( diffuse_r > 1 || diffuse_g > 1 || diffuse_b > 1 ) ? 255 : 1;
+
+								let point_color = { r: diffuse_r, g: diffuse_g, b: diffuse_b, a: diffuse_a };
 
 								geometry_position_array = geometry.data.attributes.position.array;
 
@@ -758,6 +851,12 @@ class Rhino3dmExporter {
 		}
 
 		if ( result.object.children && result.object.children.length > 0 ) {
+
+			if ( result.object.type === 'Group' || result.object.type === 'Object3D' ) {
+
+				group_m4 = new Matrix4().fromArray( result.object.matrix );
+
+			}
 
 			parse_objects( result.object.children );
 

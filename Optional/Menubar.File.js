@@ -184,17 +184,15 @@ function MenubarFile( editor ) {
 	option.setTextContent( strings.getKey( 'menubar/file/export/3dm' ) );
 	option.onClick( async function () {
 
-		const scene = editor.scene;
-
 		const { Rhino3dmExporter } = await import( 'three/addons/exporters/3DMExporter.js' );
 
 		const exporter = new Rhino3dmExporter();
 
-		exporter.parse( scene, function ( result ) {
+		exporter.parse( editor.scene, function ( result ) {
 
 			saveArrayBuffer( result, 'scene.3dm' );
 
-		} );
+		}, function( error ) { console.log( error ); }, { vertexColorsCorrection: 32 } );
 
 	} );
 	options.add( option );

@@ -192,7 +192,7 @@ function MenubarFile( editor ) {
 
 			saveArrayBuffer( result, 'scene.3dm' );
 
-		}, function( error ) { console.log( error ); }, { vertexColorsCorrection: 32 } );
+		}, function( error ) { console.log( error ); }, { vertexColorsCorrection: 0 } );
 
 	} );
 	options.add( option );

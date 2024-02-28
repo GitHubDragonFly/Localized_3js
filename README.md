@@ -87,8 +87,8 @@ Customized features would be mainly Editor related:
 - Customized PDB, PRWM, LDRAW and XYZ loaders
 - Unofficial BIM loader ([dotbim](https://github.com/ricaun/dotbim.three.js) based)
 - Customized 3DM loader / exporter:
-  - loader has slightly different color handling and corrected typos
-  - exporter is unofficial and can export texturless meshes and points
+  - exporter is unofficial and can export textured meshes, points and line segments
+  - loader has been modified to support the above mentioned exported 3dm files
 - Customized USDZ loader / exporter:
   - can approximate transmission effect
   - `USDZ (flipY)` as an additional menu export option that can flip exported textures

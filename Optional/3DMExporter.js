@@ -65,8 +65,6 @@ class Rhino3dmExporter {
 
 	async parse( scene, onDone, onError, options = {} ) {
 
-		console.log('scene ', scene);
-
 		const scope = this;
 
 		const Module = await rhino3dm[ 'default' ]();
@@ -95,7 +93,7 @@ class Rhino3dmExporter {
 
 		let rhino_count = 0, points_count = 0;
 
-		function process_material( material ) {
+		function process_material( material, isArrayMember = false ) {
 
 			rhino_material = new Module.Material();
 			rhino_material.default();
@@ -247,6 +245,8 @@ class Rhino3dmExporter {
 			// Pass additional material parameters as a user string
 
 			const params = {};
+
+			if ( isArrayMember === true ) params.isArrayMember = true;
 
 			params.side = material.side;
 
@@ -429,6 +429,11 @@ class Rhino3dmExporter {
 
 					geometry_clone = geometry_clone.applyMatrix4( mesh_matrix4 );
 
+					// Geometry groups don't seem to get processed so pass them as a user string
+
+					if ( geometry_clone.groups && geometry_clone.groups.length > 1 )
+						rhino_attributes.setUserString( 'geometry_groups', JSON.stringify( geometry_clone.groups ) );
+
 				}
 
 				if ( object.isMesh || object.isLine || object.isLineSegments ) {
@@ -512,11 +517,11 @@ class Rhino3dmExporter {
 
 							if ( object.isLine || object.isLineSegments ) {
 
-								if ( exportLineSegments === true ) process_material( material.clone() );
+								if ( exportLineSegments === true ) process_material( material.clone(), object.material.length > 1 );
 
 							} else {
 
-								process_material( material.clone() );
+								process_material( material.clone(), object.material.length > 1 );
 
 							}
 

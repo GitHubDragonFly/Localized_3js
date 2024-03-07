@@ -2,7 +2,7 @@ import {
 	BufferAttribute,
 	DefaultLoadingManager,
 	InterleavedBufferAttribute,
-	Matrix4,
+	Matrix4
 } from "three";
 
 import { decompress } from "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/utils/TextureUtils.js";
@@ -439,7 +439,7 @@ class Rhino3dmExporter {
 
 						rhino_object = new Module.Mesh.createFromThreejsJSON( { data: geometry_clone } );
 
-					} else if ( ( object.isLine || object.isLineSegments ) && exportLineSegments ) {
+					} else if ( ( object.isLine || object.isLineSegments ) && exportLineSegments === true ) {
 
 						const curvePoints = new Module.Point3dList();
 
@@ -482,7 +482,7 @@ class Rhino3dmExporter {
 
 						}
 
-						if ( ( object.isLine || object.isLineSegments ) && exportLineSegments ) {
+						if ( ( object.isLine || object.isLineSegments ) && exportLineSegments === true ) {
 
 							// Pass LineSegments vertex colors as a user string
 
@@ -514,11 +514,17 @@ class Rhino3dmExporter {
 
 							if ( object.isLine || object.isLineSegments ) {
 
-								if ( exportLineSegments === true ) process_material( material.clone(), object.material.length > 1 );
+								if ( exportLineSegments === true ) {
+
+									process_material( material.clone(), object.material.length > 1 );
+									rhino_file.objects().add( rhino_object, rhino_attributes );
+
+								}
 
 							} else {
 
 								process_material( material.clone(), object.material.length > 1 );
+								rhino_file.objects().add( rhino_object, rhino_attributes );
 
 							}
 
@@ -528,17 +534,21 @@ class Rhino3dmExporter {
 
 						if ( object.isLine || object.isLineSegments ) {
 
-							if ( exportLineSegments === true ) process_material( object.material.clone() );
+							if ( exportLineSegments === true ) {
+
+								process_material( object.material.clone() );
+								rhino_file.objects().add( rhino_object, rhino_attributes );
+
+							}
 
 						} else {
 
 							process_material( object.material.clone() );
+							rhino_file.objects().add( rhino_object, rhino_attributes );
 
 						}
 
 					}
-
-					rhino_file.objects().add( rhino_object, rhino_attributes );
 
 				} else if ( object.isPoints ) {
 
@@ -705,7 +715,7 @@ class Rhino3dmExporter {
 
 		for ( let i = 0, l = attr_items.array.length; i < l; i ++ ) {
 
-			temp_array[ i ] = attr_items.array[ i ] === NaN ? 0 : attr_items.array[ i ]; // avoid NaN values
+			temp_array[ i ] = isNaN( attr_items.array[ i ] ) ? 0 : attr_items.array[ i ]; // avoid NaN values
 
 		}
 

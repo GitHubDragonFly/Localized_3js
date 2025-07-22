@@ -1,3 +1,8 @@
+# Reality Check
+Just for those of you who might be concerned about the Climate Change, here are couple of sobering insights:
+- Neil deGrasse Tyson's perspective on climate change: [YouTube Video](https://www.youtube.com/watch?v=tRA2SfSk2Tc)
+- My perspective, with statements from two AI entities: [Climate Change](https://githubdragonfly.github.io/viewers/templates/Climate%20Change.txt)
+
 # Localized and optionally customized three.js
 
 IF, for whatever reason, you might need to locally run the [three.js](https://github.com/mrdoob/three.js/) Editor and Examples (Docs) then here is a possible way of doing it with python.
